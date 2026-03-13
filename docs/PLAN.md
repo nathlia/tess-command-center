@@ -1,98 +1,87 @@
-# TESS Command Center — Plan
+# TESS Command Center - Live Plan
 
-## What We're Building
+## Doc Map
 
-A real-time dashboard where users can see multiple AI agents working simultaneously. The goal is to make agent activity visible and interactive — something the TESS platform currently lacks.
+- `docs/PRODUCT.md` - overall product story, V1 to V2, target experience
+- `docs/PROGRESS.md` - implementation history, milestones, and key decisions
+- `docs/PLAN.md` - current execution state and next actions
+- `docs/brief.md` - original challenge brief
 
-It should feel like an operational control room, not a generic analytics dashboard.
+## Snapshot
 
-## Required Features
+- Last updated: 2026-03-13
+- Product direction: TESS-native desktop command center with icon rail, Agents column, central feed, and right context panel
+- Repo health: `npm run build` passes and `npm run lint` passes
+- Current status: main shell is mounted and aligned; split pane is out of scope; spawn flow, README, and final polish remain
 
-- [x] **Agent feed** — grid of cards, each showing: name, status, progress, model in use
-- [x] **Activity log** — terminal-style panel, live-updating, feels alive on load
-- [x] **Quick prompt** — input to send a new instruction to a selected agent
-- [x] **LLM indicator** — which model powers each agent (GPT-4, Claude, Gemini, etc.)
-- [x] **Micro-interactions** — intentional, memorable, connected to the product
+## Execution Steps
 
-## Layout Decision
+1. Stabilize the core shell and mount the V2 workspace. Status: done
+2. Realign the UI to the TESS-native four-region structure. Status: done
+3. Build `SpawnModal.tsx` and wire it to `spawnAgent`. Status: next
+4. Remove or keep hidden any remaining split-related mounted UI paths. Status: next
+5. Finish `README.md` with process notes and delivery notes. Status: pending
+6. Do final visual polish and manual browser verification. Status: pending
 
-**Two-column split:**
+## Step Checklist
 
-```
-┌─────────────────────┬──────────────────────┐
-│                     │                      │
-│   Agent Feed        │   Activity Log       │
-│   (left, white)     │   (right, dark panel)│
-│                     │                      │
-│   [ Card ]          │  > Parsing context   │
-│   [ Card ]          │  > Calling tool...   │
-│   [ Card ]          │  > Synthesizing...   │
-│   [ Card ]          │                      │
-│                     │  ──────────────────  │
-│                     │  [ Quick Prompt    ] │
-└─────────────────────┴──────────────────────┘
-```
+- [x] Phase 1 proof of concept shipped
+- [x] Phase 2 shell mounted as the main app entry
+- [x] Right context panel mounted and wired
+- [x] Shell realigned to icon rail + Agents column + feed + right context panel
+- [ ] Spawn modal implemented
+- [ ] Remaining split-pane UI path removed or hidden
+- [ ] README completed
+- [ ] Final polish and manual QA completed
 
-- Left: agent cards on white/off-white background
-- Right: dark panel for the terminal log — mirrors how TESS uses dark sections for high-density content
-- Quick prompt anchored to the bottom of the right panel, clearly tied to the log context
-- Selected agent card highlights and syncs the log to its activity
+## Done
 
-## Visual Direction
+- Vite + React + TypeScript scaffold is stable
+- Design tokens are in place and mounted UI is using the TESS-style surfaces
+- `App.tsx` is a thin wrapper around `useAgentSimulation`
+- Desktop shell is realigned to four regions:
+  - icon rail
+  - Agents column
+  - central feed
+  - right context panel
+- Feed supports:
+  - Activity
+  - Output
+  - Memory
+  - Files
+- Right panel supports:
+  - Skills
+  - MCP
+  - Integrations
+  - Context
+- Left and right panels support resize and collapse persistence
+- Interrupt action is removed from the mounted UI
+- Split pane is intentionally not part of the deliverable anymore
 
-Based on tess.im:
-- White base, never uniformly dark
-- Dark panel is a deliberate contrast block — not the default surface
-- Typography-forward: bold names, clean hierarchy, minimal decoration
-- Cards are minimal — soft shadow or barely-there border, no heavy chrome
-- Teal (`--bg-teal`) and purple (`--bg-purple`) used as accents only, never dominant
-- Generous but purposeful spacing — not cramped, not airy
+## Next Up
 
-## Agents (mock data)
+1. Build `SpawnModal.tsx` and wire it to `spawnAgent`.
+2. Remove or keep hidden any remaining split-related code paths in the mounted UI so the product surface matches scope.
+3. Finish `README.md` with:
+   - AI tools used
+   - one UX decision and why
+   - what would change with more time
+4. Do final visual polish and a manual browser pass.
 
-| Name | Model |
-|------|-------|
-| Research Agent | Claude 3.5 |
-| Ops Analyst | GPT-4 |
-| SQL Runner | Gemini Pro |
-| Support Triage | Claude 3.5 |
-| Content Synthesizer | GPT-4 |
+## Open Work
 
-## Status Semantics
+- Spawn flow still does not exist in the mounted app
+- README is still incomplete
+- Voice-input unsupported-browser behavior should still be manually verified in browser
+- Final visual alignment against the TESS refs still needs a last pass
 
-| Status | Meaning | Color |
-|--------|---------|-------|
-| `thinking` | Inference in progress | Amber — `--text-amber` |
-| `executing` | Active tool use / live work | Teal — `--bg-teal` |
-| `done` | Completed | Emerald — `--text-emerald` |
+## Done Criteria
 
-## Micro-Interaction Ideas
-
-Multiple interactions are fine — just make each one intentional:
-
-- **Card selection** — selected agent card elevates and syncs the log panel to its activity
-- **Progress ring** — animates smoothly on state transitions
-- **Log lines** — stagger in with a subtle glow on the dark panel
-- **Prompt dispatch** — brief "reroute / wake-up" animation on the target agent card
-- **Status change** — card pulses once when transitioning between states
-
-## Implementation Order
-
-1. [x] Scaffold Vite + Tailwind + tokens setup
-2. [x] Types and mock data
-3. [x] `useAgentSimulation` hook
-4. [x] `AgentCard` + `AgentFeed` (left column)
-5. [x] `ActivityLog` (right dark panel)
-6. [x] `QuickPrompt` (bottom of right panel)
-7. [x] Agent selection — sync log to selected agent
-8. [x] Micro-interactions
-9. [ ] Polish — hover states, empty states, transitions
-
-## Deliverable Checklist
-
-- [x] Runs with `npm install && npm run dev`
-- [x] All 5 features present
-- [x] Simulation feels believable and dynamic
-- [x] Micro-interactions feel intentional and polished
-- [x] UI is visually aligned with TESS (white base, dark log panel, Plus Jakarta Sans, brand tokens)
-- [ ] README covers: AI tools used, one UX decision, what would be improved
+- `npm run build` passes
+- `npm run lint` passes
+- `npm run dev` loads the Phase 2 shell
+- Desktop shell remains aligned to the current TESS-inspired structure
+- Sidebar and right panel resize/collapse persist across refresh
+- Spawn modal can create a mock agent and focus it in the shell
+- Voice input fails gracefully on unsupported browsers
+- README is complete

@@ -57,7 +57,7 @@ export function AgentCard({ agent, selected, onSelect }: Props) {
             animate={{ scaleY: 1 }}
             exit={{ scaleY: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-0 top-2 bottom-2 w-[2px] rounded-r-full origin-top"
+            className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r-full origin-top"
             style={{ background: 'linear-gradient(to bottom, var(--bg-teal), var(--bg-purple))' }}
             aria-hidden="true"
           />
@@ -98,7 +98,7 @@ export function AgentCard({ agent, selected, onSelect }: Props) {
       {/* Mini progress bar (only for active agents) */}
       {isActive && (
         <div
-          className="relative h-[3px] rounded-full overflow-hidden mb-2"
+          className="relative h-0.75 rounded-full overflow-hidden mb-2"
           style={{ backgroundColor: 'rgba(0,0,0,0.04)' }}
           role="progressbar"
           aria-valuenow={agent.progress}
