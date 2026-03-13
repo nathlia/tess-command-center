@@ -1,0 +1,17 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+@import "./assets/design-tokens.css";
+
+@import "tailwindcss";
+@source "../src";
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background-color: var(--bg-white);
+  color: var(--text-ink);
+  -webkit-font-smoothing: antialiased;
+}
