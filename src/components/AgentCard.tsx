@@ -1,8 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useRef } from 'react'
 import type { Agent } from '../types/agent'
-import { StatusDot } from './ui/StatusDot'
-import { ProgressRing } from './ui/ProgressRing'
+import { AgentIcon } from './ui/AgentIcon'
 import { ModelBadge } from './ui/ModelBadge'
 
 interface Props {
@@ -11,34 +9,44 @@ interface Props {
   onSelect: () => void
 }
 
-export function AgentCard({ agent, selected, onSelect }: Props) {
-  const prevStatus = useRef(agent.status)
-  const didTransition = agent.status !== prevStatus.current
+const statusConfig = {
+  thinking: { color: 'var(--text-amber)', label: 'THINKING' },
+  executing: { color: 'var(--bg-teal)', label: 'RUNNING' },
+  done: { color: 'var(--text-emerald)', label: 'COMPLETED' },
+} as const
 
-  useEffect(() => {
-    prevStatus.current = agent.status
-  })
+function formatTokens(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k tok`
+  return `${n} tok`
+}
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins === 1) return '1m ago'
+  return `${mins}m ago`
+}
+
+export function AgentCard({ agent, selected, onSelect }: Props) {
+  const { color, label } = statusConfig[agent.status]
+  const firstLog = agent.logs[0]
+  const isActive = agent.status !== 'done'
 
   return (
-    <motion.div
-      layout
+    <button
       onClick={onSelect}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{
-        opacity: 1,
-        y: 0,
-        scale: didTransition ? [1, 1.015, 1] : 1,
-      }}
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="relative flex flex-col gap-3 p-4 rounded-xl cursor-pointer select-none"
+      className="relative w-full text-left rounded-[10px] p-3.5 transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2"
       style={{
-        backgroundColor: selected ? 'var(--bg-off-white)' : 'var(--bg-white)',
-        border: `1.5px solid ${selected ? 'var(--bg-teal)' : 'var(--border-default)'}`,
+        backgroundColor: selected ? 'var(--bg-white)' : 'rgba(255,255,255,0.8)',
+        border: `0.667px solid ${selected ? 'var(--bg-teal)' : 'rgba(229,231,235,0.6)'}`,
         boxShadow: selected
-          ? '0 4px 16px var(--bg-teal-20)'
-          : '0 1px 4px var(--border-ink-10)',
+          ? '0 0 0 0 rgba(15,76,92,0.15), 0 1px 8px rgba(0,0,0,0.06)'
+          : 'none',
+        outlineColor: 'var(--bg-teal)',
       }}
+      aria-pressed={selected}
+      aria-label={`${agent.name} — ${label.toLowerCase()}`}
     >
       {/* Selected indicator bar */}
       <AnimatePresence>
@@ -49,36 +57,89 @@ export function AgentCard({ agent, selected, onSelect }: Props) {
             animate={{ scaleY: 1 }}
             exit={{ scaleY: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute left-0 top-4 bottom-4 w-[3px] rounded-r-full origin-top"
-            style={{ backgroundColor: 'var(--bg-teal)' }}
+            className="absolute left-0 top-2 bottom-2 w-[2px] rounded-r-full origin-top"
+            style={{ background: 'linear-gradient(to bottom, var(--bg-teal), var(--bg-purple))' }}
+            aria-hidden="true"
           />
         )}
       </AnimatePresence>
 
-      {/* Header row */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex flex-col gap-1.5 min-w-0">
+      {/* Row 1: icon + name + status */}
+      <div className="flex items-center gap-2 mb-1.5">
+        <AgentIcon icon={agent.icon} size={14} />
+        <span
+          className="text-[12.5px] font-semibold leading-tight truncate flex-1 min-w-0"
+          style={{ color: 'var(--text-ink)' }}
+        >
+          {agent.name}
+        </span>
+        <span className="flex items-center gap-1 shrink-0">
           <span
-            className="text-sm font-semibold leading-tight truncate"
-            style={{ color: 'var(--text-ink)' }}
+            className="w-1 h-1 rounded-full"
+            style={{ backgroundColor: color, opacity: agent.status === 'thinking' ? 0.39 : 1 }}
+          />
+          <span
+            className="text-[9px] font-semibold uppercase tracking-wide"
+            style={{ color }}
           >
-            {agent.name}
+            {label}
           </span>
-          <div className="flex items-center gap-2 flex-wrap">
-            <ModelBadge model={agent.model} />
-            <StatusDot status={agent.status} />
-          </div>
-        </div>
-        <ProgressRing progress={agent.progress} status={agent.status} />
+        </span>
       </div>
 
-      {/* Current task */}
+      {/* Row 2: task description */}
       <p
-        className="text-xs leading-relaxed line-clamp-2"
+        className="text-[10.5px] leading-snug truncate mb-1.5"
         style={{ color: 'var(--text-mid)' }}
       >
         {agent.currentTask}
       </p>
-    </motion.div>
+
+      {/* Mini progress bar (only for active agents) */}
+      {isActive && (
+        <div
+          className="relative h-[3px] rounded-full overflow-hidden mb-2"
+          style={{ backgroundColor: 'rgba(0,0,0,0.04)' }}
+          role="progressbar"
+          aria-valuenow={agent.progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`${agent.name} progress`}
+        >
+          <motion.div
+            className="absolute inset-y-0 left-0 rounded-full"
+            style={{ backgroundColor: color }}
+            animate={{ width: `${agent.progress}%` }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          />
+          <motion.div
+            className="absolute inset-y-0 left-0 rounded-full"
+            style={{ backgroundColor: color, opacity: 0.3 }}
+            animate={{ width: `${Math.min(agent.progress + 13, 100)}%` }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          />
+        </div>
+      )}
+
+      {/* Row 3: model badge + tokens + time */}
+      <div className="flex items-center gap-1.5">
+        <ModelBadge model={agent.model} />
+        <span
+          className="text-[9px] font-mono"
+          style={{ color: 'var(--text-mid)' }}
+        >
+          {formatTokens(agent.tokens)}
+        </span>
+        <span className="flex-1" />
+        {firstLog && (
+          <span
+            className="text-[9px] shrink-0"
+            style={{ color: 'var(--text-mid)' }}
+          >
+            {timeAgo(firstLog.timestamp)}
+          </span>
+        )}
+      </div>
+    </button>
   )
 }

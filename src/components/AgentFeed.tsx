@@ -10,31 +10,21 @@ interface Props {
 
 export function AgentFeed({ agents, selectedId, onSelect }: Props) {
   return (
-    <section className="flex flex-col gap-3 overflow-y-auto">
-      <motion.div
-        className="flex items-baseline gap-2 px-1"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        <h2 className="text-sm font-semibold" style={{ color: 'var(--text-ink)' }}>
-          Active Agents
-        </h2>
-        <span
-          className="text-xs font-medium px-1.5 py-0.5 rounded-full"
-          style={{ backgroundColor: 'var(--bg-teal-20)', color: 'var(--bg-teal)' }}
-        >
-          {agents.length}
-        </span>
-      </motion.div>
-
-      <div className="flex flex-col gap-2">
-        {agents.map(agent => (
-          <AgentCard
+    <section aria-label="Active agents">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5">
+        {agents.map((agent, index) => (
+          <motion.div
             key={agent.id}
-            agent={agent}
-            selected={agent.id === selectedId}
-            onSelect={() => onSelect(agent.id)}
-          />
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.05, ease: 'easeOut' }}
+          >
+            <AgentCard
+              agent={agent}
+              selected={agent.id === selectedId}
+              onSelect={() => onSelect(agent.id)}
+            />
+          </motion.div>
         ))}
       </div>
     </section>

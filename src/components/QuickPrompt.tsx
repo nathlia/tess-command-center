@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Agent } from '../types/agent'
+import { AgentIcon } from './ui/AgentIcon'
 
 interface Props {
   selectedAgent: Agent
@@ -10,6 +11,7 @@ interface Props {
 export function QuickPrompt({ selectedAgent, onSend }: Props) {
   const [value, setValue] = useState('')
   const [dispatched, setDispatched] = useState(false)
+  const [focused, setFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = () => {
@@ -34,30 +36,18 @@ export function QuickPrompt({ selectedAgent, onSend }: Props) {
 
   return (
     <div
-      className="shrink-0 px-5 py-4 border-t"
+      className="shrink-0 px-4 border-t"
       style={{
-        backgroundColor: 'var(--bg-black)',
-        borderColor: 'var(--border-white-10)',
+        height: 60,
+        backgroundColor: 'var(--bg-ink)',
+        borderColor: 'rgba(255,255,255,0.05)',
       }}
     >
-      {/* Target label */}
-      <div className="flex items-center gap-1.5 mb-2">
-        <span className="text-[10px]" style={{ color: 'var(--text-white-40)' }}>
-          Sending to
-        </span>
-        <span
-          className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
-          style={{
-            color: 'var(--bg-teal)',
-            backgroundColor: 'var(--bg-teal-20)',
-          }}
-        >
-          {selectedAgent.name}
-        </span>
-      </div>
+      <div className="flex items-center gap-2 h-full pt-1">
+        {/* Agent icon */}
+        <AgentIcon icon={selectedAgent.icon} size={14} className="opacity-40" />
 
-      {/* Input row */}
-      <div className="flex gap-2 items-center">
+        {/* Input */}
         <div className="relative flex-1">
           <input
             ref={inputRef}
@@ -65,12 +55,16 @@ export function QuickPrompt({ selectedAgent, onSend }: Props) {
             value={value}
             onChange={e => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
             disabled={dispatched}
-            placeholder={`New instruction…`}
-            className="w-full text-xs px-3 py-2.5 rounded-lg outline-none transition-all"
+            placeholder={`Instruct ${selectedAgent.name}…`}
+            aria-label={`Send instruction to ${selectedAgent.name}`}
+            className="w-full text-xs px-3 py-2.5 rounded-[10px] outline-none transition-all"
             style={{
-              backgroundColor: 'var(--bg-white-0a)',
-              border: '1px solid var(--border-white-10)',
+              backgroundColor: 'rgba(255,255,255,0.04)',
+              border: `0.667px solid ${focused ? 'var(--bg-teal)' : 'rgba(255,255,255,0.06)'}`,
+              boxShadow: focused ? '0 0 0 2px var(--bg-teal-20)' : 'none',
               color: 'var(--text-white-85)',
               caretColor: 'var(--bg-teal)',
             }}
@@ -83,7 +77,7 @@ export function QuickPrompt({ selectedAgent, onSend }: Props) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 flex items-center px-3 rounded-lg"
+                className="absolute inset-0 flex items-center px-3 rounded-[10px]"
                 style={{ backgroundColor: 'var(--bg-teal-12)' }}
               >
                 <motion.span
@@ -92,7 +86,7 @@ export function QuickPrompt({ selectedAgent, onSend }: Props) {
                   className="text-xs font-medium"
                   style={{ color: 'var(--bg-teal)' }}
                 >
-                  ✓ Dispatched
+                  Dispatched
                 </motion.span>
               </motion.div>
             )}
@@ -104,14 +98,29 @@ export function QuickPrompt({ selectedAgent, onSend }: Props) {
           onClick={handleSubmit}
           disabled={!value.trim() || dispatched}
           whileTap={{ scale: 0.94 }}
-          className="shrink-0 px-3 py-2.5 rounded-lg text-xs font-semibold transition-opacity cursor-pointer"
+          className="shrink-0 flex items-center justify-center rounded-[10px] transition-opacity cursor-pointer"
           style={{
-            backgroundColor: 'var(--bg-teal)',
-            color: 'var(--text-white)',
-            opacity: value.trim() && !dispatched ? 1 : 0.35,
+            width: 32,
+            height: 32,
+            backgroundColor: 'rgba(255,255,255,0.04)',
+            opacity: value.trim() && !dispatched ? 1 : 0.2,
           }}
+          aria-label="Send instruction"
         >
-          Send
+          <svg
+            width={14}
+            height={14}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ color: 'var(--text-white-70)' }}
+          >
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
         </motion.button>
       </div>
     </div>

@@ -38,13 +38,14 @@ export function useAgentSimulation() {
           if (agent.status === 'done') {
             const ticks = (doneTicksRef.current[agent.id] ?? 0) + 1
             doneTicksRef.current[agent.id] = ticks
-            const resetAfter = 4 + Math.floor(Math.random() * 3) // 4–6 ticks
+            const resetAfter = 4 + Math.floor(Math.random() * 3)
             if (ticks >= resetAfter) {
               doneTicksRef.current[agent.id] = 0
               return {
                 ...agent,
                 status: 'thinking' as AgentStatus,
                 progress: 0,
+                tokens: 0,
                 currentTask: 'Awaiting next instruction',
                 logs: [{ id: uid(), timestamp: timestamp(), message: 'Parsing request context' }],
               }
@@ -52,8 +53,10 @@ export function useAgentSimulation() {
             return agent
           }
 
-          const increment = 4 + Math.floor(Math.random() * 9) // 4–12%
+          const increment = 4 + Math.floor(Math.random() * 9)
           const newProgress = Math.min(agent.progress + increment, 100)
+          const tokenIncrement = Math.floor(Math.random() * 400) + 100
+          const newTokens = agent.tokens + tokenIncrement
 
           let newStatus: AgentStatus = agent.status
           if (newProgress >= 100) {
@@ -76,7 +79,7 @@ export function useAgentSimulation() {
             currentTask = 'Task completed successfully'
           }
 
-          return { ...agent, progress: newProgress, status: newStatus, currentTask, logs: newLogs }
+          return { ...agent, progress: newProgress, status: newStatus, currentTask, tokens: newTokens, logs: newLogs }
         })
       )
     }, TICK_MS)
@@ -93,6 +96,7 @@ export function useAgentSimulation() {
           ...agent,
           status: 'thinking' as AgentStatus,
           progress: 0,
+          tokens: 0,
           currentTask: prompt,
           logs: [
             ...agent.logs,
