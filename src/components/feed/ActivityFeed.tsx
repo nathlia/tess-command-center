@@ -62,13 +62,32 @@ export function ActivityFeed({ agent }: Props) {
       {agent.status === 'done' && (
         <div
           style={{
-            padding: '10px 18px',
-            fontSize: 'var(--text-sm)',
-            color: 'var(--text-emerald)',
-            fontWeight: 'var(--medium)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 8,
+            padding: '20px 18px 16px',
           }}
         >
-          Task complete.
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              backgroundColor: 'var(--bg-emerald-tint)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="var(--text-emerald)" strokeWidth={1.8}>
+              <path d="M2.5 7 5.5 10 11.5 4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--medium)', color: 'var(--text-emerald)' }}>
+            Task complete
+          </span>
         </div>
       )}
 

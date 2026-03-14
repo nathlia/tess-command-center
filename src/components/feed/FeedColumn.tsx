@@ -1,5 +1,6 @@
 import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import type { Agent } from '../../types/agent'
 import { FeedHeader } from './FeedHeader'
 import { CtxAlert } from './CtxAlert'
@@ -67,14 +68,22 @@ export function FeedColumn({
 
       <FeedTabs active={activeTab} onChange={(t) => onTabChange(t as FeedTab)} />
 
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        {activeTab === 'activity' && <ActivityFeed agent={agent} />}
-        {activeTab === 'output'   && <OutputTab agent={agent} />}
-        {activeTab === 'memory'   && <MemoryTab agentId={agent.id} />}
-        {activeTab === 'files'    && <FilesTab agentId={agent.id} />}
+      <div style={{ flex: 1, minHeight: 0, position: 'relative', overflow: 'hidden' }}>
+        <motion.div
+          key={agent.id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
+          style={{ height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}
+        >
+          {activeTab === 'activity' && <ActivityFeed agent={agent} />}
+          {activeTab === 'output'   && <OutputTab agent={agent} />}
+          {activeTab === 'memory'   && <MemoryTab agentId={agent.id} />}
+          {activeTab === 'files'    && <FilesTab agentId={agent.id} />}
+        </motion.div>
       </div>
 
-      <InputBar agentId={agent.id} agentLabel={agent.name} onSend={onSend} />
+      <InputBar agentId={agent.id} agentLabel={agent.name} onSend={onSend} done={agent.status === 'done'} />
     </div>
   )
 }

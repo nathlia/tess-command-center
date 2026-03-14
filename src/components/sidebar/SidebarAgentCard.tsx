@@ -149,8 +149,8 @@ function SidebarCard({
         textAlign: 'left',
         padding: '11px 13px',
         borderRadius: 12,
-        border: `1px solid ${selected ? 'var(--border-ink)' : 'var(--border-default)'}`,
-        backgroundColor: selected ? 'var(--bg-subtle)' : 'var(--bg-white)',
+        border: '1px solid var(--border-default)',
+        backgroundColor: selected ? 'var(--bg-teal-12)' : 'var(--bg-white)',
         cursor: 'pointer',
         transition: 'background-color 120ms, border-color 120ms',
       }}
@@ -237,7 +237,7 @@ function SidebarCard({
       </div>
 
       <style>{`
-        .sidebar-compact-card:hover { background-color: var(--bg-subtle) !important; border-color: var(--border-black-10) !important; }
+        .sidebar-compact-card:not([aria-pressed="true"]):hover { background-color: var(--bg-subtle); }
         .sidebar-compact-card:focus-visible { outline: 2px solid var(--bg-teal); outline-offset: 2px; }
       `}</style>
     </div>

@@ -75,14 +75,14 @@
   --text-white-40:   #ffffff66;
   --text-gray-300:   #d1d5db;
   --text-gray-400:   #d4d4d4;
-  --text-muted-400:  #a3a3a3;
-  --text-muted-500:  #9ca3af;
+  --text-muted-400:  #767676;       /* AA on white: 4.55:1 */
+  --text-muted-500:  #5d6576;       /* AA on white: 5.84:1 */
   --text-red:        #dc2626;       /* ★ error / danger */
-  --text-amber:      #d97706;       /* ★ warning / price */
+  --text-amber:      #b45309;       /* ★ warning / price — AA on white: 5.02:1 */
   --text-brown:      #9f8066;
-  --text-emerald:    #059669;       /* ★ success / checks */
+  --text-emerald:    #047857;       /* ★ success / checks — AA on white: 5.48:1 */
   --text-neutral:    #737373;
-  --text-mid:        #6b7280;       /* ★ secondary on light */
+  --text-mid:        #555f6d;       /* ★ secondary on light — AA on white: 6.47:1 */
   --text-dark-600:   #4b5563;
   --text-slate-600:  #475569;
   --text-dark-700:   #525252;

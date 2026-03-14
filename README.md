@@ -1,5 +1,20 @@
 # TESS Command Center
 
+> A multi-agent monitoring interface built as a design & engineering challenge for Tess AI.
+
+![TESS Command Center preview](screenshots/screen-01.png)
+
+## How to run
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+---
+
 ## Visão geral
 
 Este projeto propõe uma interface para o **TESS Command Center**, com foco em acompanhar múltiplos agentes em execução, visualizar atividade em tempo real e permitir inspeção mais detalhada do contexto de cada agente.
@@ -70,11 +85,10 @@ Com mais tempo, eu refinaria principalmente os seguintes pontos:
     - error
     - paused
     - canceled
-- mais polimento visual e **microinterações**, especialmente no activity feed
+- refinamento do polimento visual e das **microinterações** no activity feed — estados de loading mais ricos, hierarquia de eventos mais expressiva e passagens de estilo adicionais em banners contextuais e feedback do sistema
 - melhor definição de hierarquia entre tipos de evento e feedback do sistema
 - banners contextuais e alertas mais refinados
 - tooltips mais bem resolvidos onde a interface pede explicação adicional
-- transições e mudanças de layout mais suaves
 - interações de terminal mais amigáveis
 - tipografia mais coesa em toda a experiência
 

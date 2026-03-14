@@ -125,7 +125,7 @@ export function RightPanel({
         {activeTab === 'skills' && <SkillsTab data={data} />}
         {activeTab === 'mcp' && <McpTab data={data} />}
         {activeTab === 'integrations' && <IntegrationsTab data={data} />}
-        {activeTab === 'context' && <ContextTab data={data} />}
+        {activeTab === 'context' && <ContextTab data={data} livePct={agent.ctx} />}
       </div>
 
       <div

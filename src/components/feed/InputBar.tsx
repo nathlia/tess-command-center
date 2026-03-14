@@ -6,9 +6,10 @@ interface Props {
   agentId: string
   agentLabel: string
   onSend: (agentId: string, msg: string) => void
+  done?: boolean
 }
 
-export function InputBar({ agentId, agentLabel, onSend }: Props) {
+export function InputBar({ agentId, agentLabel, onSend, done = false }: Props) {
   const [value, setValue] = useState('')
   const { listening, toggle } = useVoiceInput(text => setValue(current => (current ? `${current} ${text}` : text)))
 
@@ -37,7 +38,9 @@ export function InputBar({ agentId, agentLabel, onSend }: Props) {
           padding: '10px',
           borderRadius: 16,
           border: '1px solid var(--border-default)',
-          backgroundColor: 'var(--bg-white)',
+          backgroundColor: done ? 'var(--bg-off-white)' : 'var(--bg-white)',
+          opacity: done ? 0.6 : 1,
+          transition: 'opacity 300ms, background-color 300ms',
         }}
       >
         <ControlButton
@@ -64,8 +67,8 @@ export function InputBar({ agentId, agentLabel, onSend }: Props) {
               submit()
             }
           }}
-          aria-label={`Send an instruction to ${agentLabel}`}
-          placeholder={`Send an instruction to ${agentLabel}`}
+          aria-label={done ? `Send a follow-up to ${agentLabel}` : `Send an instruction to ${agentLabel}`}
+          placeholder={done ? `Send a follow-up to ${agentLabel}` : `Send an instruction to ${agentLabel}`}
           style={{
             flex: 1,
             minWidth: 0,

@@ -4,17 +4,29 @@ import { PanelSection } from './PanelSection'
 
 interface Props {
   data: ContextPanelData
+  livePct?: number
 }
 
-export function ContextTab({ data }: Props) {
-  const totalPct = data.ctx.reasoning + data.ctx.mcp + data.ctx.skills + data.ctx.task
+export function ContextTab({ data, livePct }: Props) {
+  const staticTotal = data.ctx.reasoning + data.ctx.mcp + data.ctx.skills + data.ctx.task
+  // Use live agent.ctx if provided; scale breakdown proportionally to keep ratios intact
+  const totalPct = livePct !== undefined ? Math.round(livePct) : staticTotal
+  const scale = staticTotal > 0 ? totalPct / staticTotal : 0
+
+  const scaled = {
+    reasoning: data.ctx.reasoning * scale,
+    mcp: data.ctx.mcp * scale,
+    skills: data.ctx.skills * scale,
+    task: data.ctx.task * scale,
+  }
+
   const totalUsed = formatWindowValue((totalPct / 100) * data.ctx.total)
 
   const segments = [
-    { key: 'reasoning', label: 'Agent reasoning', value: data.ctx.reasoning, color: 'var(--text-purple)', used: formatWindowValue((data.ctx.reasoning / 100) * data.ctx.total) },
-    { key: 'mcp', label: 'MCP results', value: data.ctx.mcp, color: 'var(--text-teal)', used: formatWindowValue((data.ctx.mcp / 100) * data.ctx.total) },
-    { key: 'skills', label: 'Skills injected', value: data.ctx.skills, color: 'var(--text-emerald)', used: formatWindowValue((data.ctx.skills / 100) * data.ctx.total) },
-    { key: 'task', label: 'Task + history', value: data.ctx.task, color: 'var(--text-amber)', used: formatWindowValue((data.ctx.task / 100) * data.ctx.total) },
+    { key: 'reasoning', label: 'Agent reasoning', value: scaled.reasoning, color: 'var(--text-purple)', used: formatWindowValue((scaled.reasoning / 100) * data.ctx.total) },
+    { key: 'mcp', label: 'MCP results', value: scaled.mcp, color: 'var(--text-teal)', used: formatWindowValue((scaled.mcp / 100) * data.ctx.total) },
+    { key: 'skills', label: 'Skills injected', value: scaled.skills, color: 'var(--text-emerald)', used: formatWindowValue((scaled.skills / 100) * data.ctx.total) },
+    { key: 'task', label: 'Task + history', value: scaled.task, color: 'var(--text-amber)', used: formatWindowValue((scaled.task / 100) * data.ctx.total) },
     { key: 'available', label: 'Available', value: Math.max(0, 100 - totalPct), color: 'var(--border-default)', used: formatWindowValue((Math.max(0, 100 - totalPct) / 100) * data.ctx.total) },
   ]
 

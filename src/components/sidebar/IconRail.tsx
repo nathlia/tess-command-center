@@ -1,4 +1,4 @@
-import tessLogo from '../../assets/logos/tess-light.svg'
+import tessLogo from '../../assets/logos/tess-dark.svg'
 import { RailButton } from './RailButton'
 
 const PRIMARY_ITEMS = [

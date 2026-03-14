@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { Agent } from '../../types/agent'
 import { FeedColumn } from '../feed/FeedColumn'
 import type { FeedTab } from '../feed/FeedColumn'
@@ -326,18 +327,25 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
               />
             )}
 
-            <FeedColumn
-              agent={selectedAgent}
-              onPause={() => togglePause(selectedAgent)}
-              onClose={closeFeed}
-              onOpenDetails={openDetails}
-              detailsOpen={detailsOpen}
-              onSend={onSendPrompt}
-              activeTab={activeFeedTab}
-              onTabChange={tab => setFeedTabsByAgent(previous => ({ ...previous, [selectedAgent.id]: tab }))}
-              detailsButtonRef={detailsButtonRef}
-              style={{ minWidth: layout === 'desktop' ? 360 : 0 }}
-            />
+            <motion.div
+              key="feed-col"
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+              style={{ flex: 1, minWidth: layout === 'desktop' ? 360 : 0, minHeight: 0, display: 'flex', overflow: 'hidden' }}
+            >
+              <FeedColumn
+                agent={selectedAgent}
+                onPause={() => togglePause(selectedAgent)}
+                onClose={closeFeed}
+                onOpenDetails={openDetails}
+                detailsOpen={detailsOpen}
+                onSend={onSendPrompt}
+                activeTab={activeFeedTab}
+                onTabChange={tab => setFeedTabsByAgent(previous => ({ ...previous, [selectedAgent.id]: tab }))}
+                detailsButtonRef={detailsButtonRef}
+              />
+            </motion.div>
 
             {/* Handle is always rendered — expand btn visible when details are closed */}
             <ResizeHandle
@@ -357,26 +365,33 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
               collapseAriaLabel="Hide details panel"
             />
 
-            {showDetailsPanel && (
-              <div
-                ref={rightPanelRef}
-                style={{
-                  width: rightPanelWidth,
-                  flexShrink: 0,
-                  display: 'flex',
-                  minHeight: 0,
-                  overflow: 'hidden',
-                }}
-              >
-                <RightPanel
-                  agent={selectedAgent}
-                  width="100%"
-                  onClose={closeDetails}
-                  activeTab={activeDetailsTab}
-                  onTabChange={tab => setDetailsTabsByAgent(previous => ({ ...previous, [selectedAgent.id]: tab }))}
-                />
-              </div>
-            )}
+            <AnimatePresence>
+              {showDetailsPanel && (
+                <motion.div
+                  key="details-panel"
+                  ref={rightPanelRef}
+                  initial={{ opacity: 0, x: 16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 16 }}
+                  transition={{ duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  style={{
+                    width: rightPanelWidth,
+                    flexShrink: 0,
+                    display: 'flex',
+                    minHeight: 0,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <RightPanel
+                    agent={selectedAgent}
+                    width="100%"
+                    onClose={closeDetails}
+                    activeTab={activeDetailsTab}
+                    onTabChange={tab => setDetailsTabsByAgent(previous => ({ ...previous, [selectedAgent.id]: tab }))}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </>
         ) : null}
       </div>

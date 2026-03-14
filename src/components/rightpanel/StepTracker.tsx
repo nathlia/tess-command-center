@@ -14,13 +14,18 @@ export function StepTracker({ steps }: Props) {
   const [collapsed, setCollapsed] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const summary = getStepSummary(steps)
+  const visibleSteps = useMemo(() => {
+    if (showAll) return steps
+    const activeIndex = steps.findIndex(s => s.status === 'active')
+    const anchorIndex = activeIndex !== -1 ? activeIndex : steps.findLastIndex(s => s.status === 'done')
+    const start = anchorIndex !== -1
+      ? Math.max(0, anchorIndex - 1)
+      : Math.max(0, steps.length - DEFAULT_VISIBLE_STEPS)
+    return steps.slice(start, start + DEFAULT_VISIBLE_STEPS)
+  }, [showAll, steps])
+
   const hasHiddenSteps = steps.length > DEFAULT_VISIBLE_STEPS
   const hiddenCount = Math.max(0, steps.length - DEFAULT_VISIBLE_STEPS)
-
-  const visibleSteps = useMemo(
-    () => (showAll ? steps : steps.slice(-DEFAULT_VISIBLE_STEPS)),
-    [showAll, steps],
-  )
 
   return (
     <section
