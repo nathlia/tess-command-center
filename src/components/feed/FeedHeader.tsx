@@ -2,6 +2,7 @@ import type { RefObject } from 'react'
 import type { Agent } from '../../types/agent'
 import { Badge } from '../ui/Badge'
 import { ControlButton } from '../ui/ControlButton'
+import { Tooltip } from '../ui/Tooltip'
 
 interface Props {
   agent: Agent
@@ -22,9 +23,8 @@ export function FeedHeader({
   detailsButtonRef,
   mobile = false,
 }: Props) {
-  const isLive = agent.status !== 'done' && !agent.paused
-  const statusTone = isLive ? 'teal' : agent.paused ? 'amber' : 'emerald'
-  const statusLabel = isLive ? 'Executing' : agent.paused ? 'Paused' : 'Done'
+  const statusTone = agent.paused ? 'amber' : agent.status === 'done' ? 'emerald' : agent.status === 'thinking' ? 'amber' : 'teal'
+  const statusLabel = agent.paused ? 'Paused' : agent.status === 'done' ? 'Done' : agent.status === 'thinking' ? 'Thinking' : 'Executing'
 
   return (
     <div
@@ -36,22 +36,25 @@ export function FeedHeader({
         gap: 16,
         padding: mobile ? '12px 16px' : '0 20px',
         backgroundColor: 'var(--bg-white)',
+        borderBottom: '1px solid var(--border-default)',
         flexShrink: 0,
         flexWrap: mobile ? 'wrap' : 'nowrap',
       }}
     >
       <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <ControlButton
-          icon={
-            <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M7.5 2.5 4 6l3.5 3.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          }
-          onClick={onClose}
-          variant="ghost"
-          size="sm"
-          aria-label={mobile ? 'Back to agents' : 'Close agent view'}
-        />
+        <Tooltip content={mobile ? 'Back to agents' : 'Back'} side="bottom" delay={500}>
+          <ControlButton
+            icon={
+              <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M7.5 2.5 4 6l3.5 3.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            }
+            onClick={onClose}
+            variant="ghost"
+            size="sm"
+            aria-label={mobile ? 'Back to agents' : 'Close agent view'}
+          />
+        </Tooltip>
 
         <h2
           style={{

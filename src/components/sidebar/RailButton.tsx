@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Tooltip } from '../ui/Tooltip'
 
 interface Props {
   label: string
@@ -8,10 +9,10 @@ interface Props {
 
 export function RailButton({ label, icon, active = false }: Props) {
   return (
+    <Tooltip content={label} side="right" delay={300}>
     <button
       type="button"
       aria-label={label}
-      title={label}
       aria-current={active ? 'page' : undefined}
       style={{
         width: 32,
@@ -53,5 +54,6 @@ export function RailButton({ label, icon, active = false }: Props) {
         }
       `}</style>
     </button>
+    </Tooltip>
   )
 }

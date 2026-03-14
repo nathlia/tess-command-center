@@ -295,7 +295,7 @@ export function SidebarAgentCard({
               cursor: 'pointer',
             }}
           >
-            View details
+            View activity
             <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M2.5 6h7" strokeLinecap="round" />
               <path d="m6.5 2.5 3.5 3.5-3.5 3.5" strokeLinecap="round" strokeLinejoin="round" />

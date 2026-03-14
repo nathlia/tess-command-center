@@ -49,6 +49,7 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
   const {
     width: agentsWidth,
     onPointerDown: onAgentsResize,
+    onDoubleClick: onAgentsReset,
     isDragging: agentsDragging,
     willCollapse: agentsWillCollapse,
   } = useResizablePanel(
@@ -60,12 +61,14 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
       legacyStorageKey: 'tcc.sidebar.width',
       collapseThreshold: 248,
       onCollapse: () => setAgentsCollapsed(true),
+      snapPoints: [280, 320, 360, 400],
     },
   )
 
   const {
     width: rightPanelWidth,
     onPointerDown: onRightPanelResize,
+    onDoubleClick: onRightPanelReset,
     isDragging: detailsDragging,
     willCollapse: detailsWillCollapse,
   } = useResizablePanel(
@@ -77,6 +80,7 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
       resizeFrom: 'left',
       collapseThreshold: 224,
       onCollapse: () => setDetailsOpen(false),
+      snapPoints: [288, 320, 360, 400],
     },
   )
 
@@ -95,16 +99,9 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
   const browserMode = !feedOpen || !selectedAgent
   const agentsAutoHidden = layout === 'tablet' && detailsOpen
   const showAgentsSidebar = !browserMode && !agentsCollapsed && !agentsAutoHidden
-  const showAgentsStub = !browserMode && (agentsCollapsed || agentsAutoHidden)
+  // Show agents stub only for tablet auto-hide (not for user-collapsed — handle covers that)
+  const showAgentsAutoHiddenStub = !browserMode && agentsAutoHidden
   const showDetailsPanel = !browserMode && detailsOpen && Boolean(selectedAgent)
-
-  const detailTabLabel = activeDetailsTab === 'skills'
-    ? 'Skills'
-    : activeDetailsTab === 'mcp'
-      ? 'MCP'
-      : activeDetailsTab === 'integrations'
-        ? 'Integrations'
-        : 'Context'
 
   if (!agents.length) return null
 
@@ -268,34 +265,37 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
         ) : selectedAgent ? (
           <>
             {showAgentsSidebar && (
-              <>
-                <AgentsPanel
-                  agents={agents}
-                  selectedId={selectedId}
-                  onSelect={handleSelectAgent}
-                  onTogglePause={agentId => {
-                    const agent = agents.find(item => item.id === agentId)
-                    if (!agent) return
-                    togglePause(agent)
-                  }}
-                  width={agentsWidth}
-                  mode="sidebar"
-                  registerCardRef={registerCardRef}
-                />
-
-                <ResizeHandle
-                  onPointerDown={onAgentsResize}
-                  onCollapse={() => setAgentsCollapsed(true)}
-                  collapsed={false}
-                  side="left"
-                  label="Resize agents panel"
-                  dragging={agentsDragging}
-                  willCollapse={agentsWillCollapse}
-                />
-              </>
+              <AgentsPanel
+                agents={agents}
+                selectedId={selectedId}
+                onSelect={handleSelectAgent}
+                onTogglePause={agentId => {
+                  const agent = agents.find(item => item.id === agentId)
+                  if (!agent) return
+                  togglePause(agent)
+                }}
+                width={agentsWidth}
+                mode="sidebar"
+                registerCardRef={registerCardRef}
+              />
             )}
 
-            {showAgentsStub && (
+            {/* Handle is always rendered when not auto-hidden — expand btn visible when collapsed */}
+            {!agentsAutoHidden && (
+              <ResizeHandle
+                onPointerDown={onAgentsResize}
+                onDoubleClick={onAgentsReset}
+                onCollapse={agentsCollapsed ? reopenAgentsPanel : () => setAgentsCollapsed(true)}
+                collapsed={agentsCollapsed}
+                side="left"
+                label="Resize agents panel"
+                dragging={agentsDragging}
+                willCollapse={agentsWillCollapse}
+                disabled={agentsCollapsed}
+              />
+            )}
+
+            {showAgentsAutoHiddenStub && (
               <PanelStub
                 title="Agents"
                 subtitle={`${agents.length} total`}
@@ -318,33 +318,26 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
               style={{ minWidth: layout === 'desktop' ? 360 : 0 }}
             />
 
-            {showDetailsPanel ? (
-              <>
-                <ResizeHandle
-                  onPointerDown={onRightPanelResize}
-                  onCollapse={closeDetails}
-                  collapsed={false}
-                  side="right"
-                  label="Resize details panel"
-                  dragging={detailsDragging}
-                  willCollapse={detailsWillCollapse}
-                />
+            {/* Handle is always rendered — expand btn visible when details are closed */}
+            <ResizeHandle
+              onPointerDown={onRightPanelResize}
+              onDoubleClick={onRightPanelReset}
+              onCollapse={detailsOpen ? closeDetails : () => setDetailsOpen(true)}
+              collapsed={!detailsOpen}
+              side="right"
+              label="Resize details panel"
+              dragging={detailsDragging}
+              willCollapse={detailsWillCollapse}
+              disabled={!detailsOpen}
+            />
 
-                <RightPanel
-                  agent={selectedAgent}
-                  width={rightPanelWidth}
-                  onClose={closeDetails}
-                  activeTab={activeDetailsTab}
-                  onTabChange={tab => setDetailsTabsByAgent(previous => ({ ...previous, [selectedAgent.id]: tab }))}
-                />
-              </>
-            ) : (
-              <PanelStub
-                title="Details"
-                subtitle={detailTabLabel}
-                side="right"
-                ariaLabel={`Open details panel on ${detailTabLabel}`}
-                onClick={() => setDetailsOpen(true)}
+            {showDetailsPanel && (
+              <RightPanel
+                agent={selectedAgent}
+                width={rightPanelWidth}
+                onClose={closeDetails}
+                activeTab={activeDetailsTab}
+                onTabChange={tab => setDetailsTabsByAgent(previous => ({ ...previous, [selectedAgent.id]: tab }))}
               />
             )}
           </>

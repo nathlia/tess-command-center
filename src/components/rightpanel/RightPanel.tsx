@@ -1,6 +1,8 @@
 import { contextPanelData, emptyContextPanelData } from '../../data/contextPanelData'
 import type { Agent } from '../../types/agent'
 import { ControlButton } from '../ui/ControlButton'
+import { TabButton } from '../ui/TabButton'
+import { Tooltip } from '../ui/Tooltip'
 import { AgentStats } from './AgentStats'
 import { ContextTab } from './ContextTab'
 import { IntegrationsTab } from './IntegrationsTab'
@@ -93,17 +95,19 @@ export function RightPanel({
             </div>
           </div>
 
-          <ControlButton
-            icon={
-              <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M9 3 3 9M3 3l6 6" strokeLinecap="round" />
-              </svg>
-            }
-            onClick={onClose}
-            variant="ghost"
-            size="sm"
-            aria-label={mobile ? 'Back to agent activity' : 'Hide details'}
-          />
+          <Tooltip content={mobile ? 'Back' : 'Hide details'} side="bottom" delay={500}>
+            <ControlButton
+              icon={
+                <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M9 3 3 9M3 3l6 6" strokeLinecap="round" />
+                </svg>
+              }
+              onClick={onClose}
+              variant="ghost"
+              size="sm"
+              aria-label={mobile ? 'Back to agent activity' : 'Hide details'}
+            />
+          </Tooltip>
         </div>
 
         <div
@@ -118,26 +122,16 @@ export function RightPanel({
           }}
         >
           {PANEL_TABS.map(item => (
-            <button
+            <TabButton
               key={item.id}
-              type="button"
-              onClick={() => onTabChange(item.id)}
               role="tab"
               aria-selected={activeTab === item.id}
-              style={{
-                minHeight: 42,
-                padding: '0',
-                border: 'none',
-                borderBottom: `2px solid ${activeTab === item.id ? 'var(--text-ink)' : 'transparent'}`,
-                background: 'none',
-                color: activeTab === item.id ? 'var(--text-ink)' : 'var(--text-mid)',
-                fontSize: 'var(--text-sm)',
-                fontWeight: activeTab === item.id ? 'var(--semibold)' : 'var(--medium)',
-                cursor: 'pointer',
-              }}
+              active={activeTab === item.id}
+              onClick={() => onTabChange(item.id)}
+              style={{ minHeight: 42 }}
             >
               {item.label}
-            </button>
+            </TabButton>
           ))}
         </div>
       </div>

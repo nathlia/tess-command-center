@@ -22,7 +22,7 @@ export function AgentsPanel({
   mode = 'sidebar',
   registerCardRef,
 }: Props) {
-  const running = agents.filter(agent => agent.status === 'executing' && !agent.paused).length
+  const running = agents.filter(agent => (agent.status === 'executing' || agent.status === 'thinking') && !agent.paused).length
   const done = agents.filter(agent => agent.status === 'done').length
   const idle = agents.length - running - done
   const browser = mode === 'browser'

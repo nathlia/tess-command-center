@@ -5,11 +5,14 @@ interface UseResizablePanelOptions {
   resizeFrom?: 'right' | 'left'
   collapseThreshold?: number
   onCollapse?: () => void
+  snapPoints?: number[]
 }
 
 function clamp(val: number, min: number, max: number) {
   return Math.min(max, Math.max(min, val))
 }
+
+const SNAP_RADIUS = 14
 
 export function useResizablePanel(
   storageKey: string,
@@ -22,6 +25,12 @@ export function useResizablePanel(
   const resizeFrom = options?.resizeFrom ?? 'right'
   const collapseThreshold = options?.collapseThreshold
   const onCollapse = options?.onCollapse
+
+  // Keep mutable refs so the pointermove closure never goes stale
+  const snapPointsRef = useRef(options?.snapPoints)
+  snapPointsRef.current = options?.snapPoints
+  const defaultWidthRef = useRef(defaultWidth)
+  defaultWidthRef.current = defaultWidth
 
   const [width, setWidthState] = useState<number>(() => {
     try {
@@ -62,21 +71,29 @@ export function useResizablePanel(
     const onPointerMove = (e: PointerEvent) => {
       if (!dragRef.current.dragging) return
       const delta = e.clientX - dragRef.current.startX
-      const nextWidth =
-        dragRef.current.startW + delta * (resizeFrom === 'left' ? -1 : 1)
+      let nextWidth = dragRef.current.startW + delta * (resizeFrom === 'left' ? -1 : 1)
 
       if (collapseThreshold) {
         const nextWillCollapse = nextWidth < collapseThreshold
         collapseRef.current = nextWillCollapse
         setWillCollapse(nextWillCollapse)
+        if (nextWillCollapse) return
       }
 
-      if (collapseThreshold && nextWidth < collapseThreshold) {
-        return
+      // Snap to natural sizes when close enough
+      const snaps = snapPointsRef.current
+      if (snaps?.length) {
+        for (const snap of snaps) {
+          if (Math.abs(nextWidth - snap) < SNAP_RADIUS) {
+            nextWidth = snap
+            break
+          }
+        }
       }
 
       setWidth(nextWidth)
     }
+
     const onPointerUp = () => {
       if (!dragRef.current.dragging) return
       const shouldCollapse = collapseRef.current && Boolean(collapseThreshold && onCollapse)
@@ -87,7 +104,7 @@ export function useResizablePanel(
 
       dragRef.current.dragging = false
       dragRef.current.target = null
-      document.body.style.cursor = ''
+      delete document.body.dataset.resizing
       document.body.style.userSelect = ''
       setIsDragging(false)
       collapseRef.current = false
@@ -97,6 +114,7 @@ export function useResizablePanel(
         onCollapse()
       }
     }
+
     document.addEventListener('pointermove', onPointerMove)
     document.addEventListener('pointerup', onPointerUp)
     return () => {
@@ -115,12 +133,21 @@ export function useResizablePanel(
       pointerId: e.pointerId,
       target: e.currentTarget,
     }
-    document.body.style.cursor = 'col-resize'
+    document.body.dataset.resizing = 'true'
     document.body.style.userSelect = 'none'
     collapseRef.current = false
     setWillCollapse(false)
     setIsDragging(true)
   }
 
-  return { width, onPointerDown, isDragging, willCollapse }
+  // Double-click to reset to the default width
+  const onDoubleClick = useCallback(() => {
+    const target = defaultWidthRef.current
+    setWidthState(clamp(target, min, max))
+    try {
+      localStorage.setItem(storageKey, String(clamp(target, min, max)))
+    } catch { /* ignore */ }
+  }, [min, max, storageKey])
+
+  return { width, onPointerDown, onDoubleClick, isDragging, willCollapse }
 }

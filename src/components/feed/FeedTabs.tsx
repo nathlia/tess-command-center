@@ -1,4 +1,4 @@
-import { ControlButton } from '../ui/ControlButton'
+import { TabButton } from '../ui/TabButton'
 
 type Tab = 'activity' | 'output' | 'memory' | 'files'
 
@@ -21,26 +21,24 @@ export function FeedTabs({ active, onChange }: Props) {
       aria-label="Feed sections"
       style={{
         display: 'flex',
-        gap: 6,
-        padding: '10px 18px',
+        gap: 20,
+        padding: '0 18px',
         borderBottom: '1px solid var(--border-default)',
         backgroundColor: 'var(--bg-white)',
         overflowX: 'auto',
+        flexShrink: 0,
       }}
     >
       {TABS.map(tab => (
-        <ControlButton
+        <TabButton
           key={tab.id}
-          onClick={() => onChange(tab.id)}
           role="tab"
           aria-selected={active === tab.id}
           active={active === tab.id}
-          variant="ghost"
-          size="sm"
-          style={{ padding: '0 12px', borderRadius: 10 }}
+          onClick={() => onChange(tab.id)}
         >
           {tab.label}
-        </ControlButton>
+        </TabButton>
       ))}
     </div>
   )
