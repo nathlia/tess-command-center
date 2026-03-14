@@ -2,7 +2,13 @@
 
 > A multi-agent monitoring interface built as a design & engineering challenge for Tess AI.
 
-![TESS Command Center preview](screenshots/screen-01.png)
+<table>
+  <tr>
+    <td><img src="screenshots/screen-01.png" alt="Dashboard overview" /></td>
+    <td><img src="screenshots/screen-02.png" alt="Agent activity feed" /></td>
+    <td><img src="screenshots/screen-03.png" alt="Agent details panel" /></td>
+  </tr>
+</table>
 
 ## How to run
 
