@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 type ButtonTone = 'neutral' | 'teal' | 'amber'
@@ -110,7 +111,7 @@ function getPalette(
   }
 }
 
-export function ControlButton({
+export const ControlButton = forwardRef<HTMLButtonElement, Props>(function ControlButton({
   children,
   icon,
   active = false,
@@ -123,13 +124,14 @@ export function ControlButton({
   type = 'button',
   style,
   ...buttonProps
-}: Props) {
+}: Props, ref) {
   const sizeStyle = BUTTON_SIZES[size]
   const palette = getPalette(variant, tone, active, disabled)
   const hasLabel = children !== undefined && children !== null
 
   return (
     <button
+      ref={ref}
       type={type}
       disabled={disabled}
       style={{
@@ -160,4 +162,4 @@ export function ControlButton({
       {children}
     </button>
   )
-}
+})

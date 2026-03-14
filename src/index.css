@@ -53,3 +53,31 @@ body {
 .font-mono {
   font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
 }
+
+.badge-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(115deg, transparent 22%, var(--bg-white-14) 42%, var(--text-white-70) 50%, var(--bg-white-14) 58%, transparent 78%);
+  transform: translateX(-140%);
+  animation: badge-shimmer 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes badge-shimmer {
+  0% {
+    transform: translateX(-140%);
+  }
+
+  55%,
+  100% {
+    transform: translateX(140%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-shimmer::after {
+    animation: none;
+    opacity: 0;
+  }
+}

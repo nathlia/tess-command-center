@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { ControlButton } from '../ui/ControlButton'
 
 interface Props {
   label: string
@@ -9,19 +8,50 @@ interface Props {
 
 export function RailButton({ label, icon, active = false }: Props) {
   return (
-    <ControlButton
-      icon={icon}
+    <button
+      type="button"
       aria-label={label}
       title={label}
-      active={active}
-      tone={active ? 'teal' : 'neutral'}
-      variant={active ? 'soft' : 'ghost'}
-      size="sm"
+      aria-current={active ? 'page' : undefined}
       style={{
-        width: 36,
-        height: 36,
-        borderRadius: 12,
+        width: 32,
+        height: 32,
+        border: 'none',
+        background: 'transparent',
+        borderRadius: 10,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: active ? 'var(--text-ink)' : 'var(--text-mid)',
+        cursor: 'pointer',
+        position: 'relative',
+        transition: 'background-color 120ms, color 120ms, transform 120ms',
       }}
-    />
+      className="rail-button"
+      data-active={active ? 'true' : 'false'}
+    >
+      {active && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: -8,
+            width: 3,
+            height: 18,
+            borderRadius: 999,
+            backgroundColor: 'var(--bg-teal)',
+          }}
+        />
+      )}
+      {icon}
+
+      <style>{`
+        .rail-button:hover {
+          background-color: var(--bg-subtle);
+          color: var(--text-ink);
+          transform: translateY(-1px);
+        }
+      `}</style>
+    </button>
   )
 }

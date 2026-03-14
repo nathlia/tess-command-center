@@ -1,4 +1,3 @@
-import { useState, type ReactNode } from 'react'
 import { contextPanelData, emptyContextPanelData } from '../../data/contextPanelData'
 import type { Agent } from '../../types/agent'
 import { ControlButton } from '../ui/ControlButton'
@@ -6,129 +5,148 @@ import { AgentStats } from './AgentStats'
 import { ContextTab } from './ContextTab'
 import { IntegrationsTab } from './IntegrationsTab'
 import { McpTab } from './McpTab'
-import { panelIcons } from './panelIconsIndex'
 import { SkillsTab } from './SkillsTab'
 import { StepTracker } from './StepTracker'
 
-type RightPanelTab = 'skills' | 'mcp' | 'integrations' | 'context'
+export type RightPanelTab = 'skills' | 'mcp' | 'integrations' | 'context'
 
 interface Props {
   agent: Agent
-  collapsed: boolean
-  width: number
-  onToggle: () => void
+  width?: number
+  onClose: () => void
+  activeTab: RightPanelTab
+  onTabChange: (tab: RightPanelTab) => void
+  mobile?: boolean
 }
 
-const PANEL_TABS: Array<{ id: RightPanelTab; label: string; short: string; icon: ReactNode }> = [
-  { id: 'skills', label: 'Skills', short: 'S', icon: <panelIcons.SkillIcon /> },
-  { id: 'mcp', label: 'MCP', short: 'M', icon: <panelIcons.McpIcon /> },
-  { id: 'integrations', label: 'Integrations', short: 'I', icon: <panelIcons.IntegrationIcon /> },
-  { id: 'context', label: 'Context', short: 'C', icon: <panelIcons.ContextIcon /> },
+const PANEL_TABS: Array<{ id: RightPanelTab; label: string }> = [
+  { id: 'skills', label: 'Skills' },
+  { id: 'mcp', label: 'MCP' },
+  { id: 'integrations', label: 'Integrations' },
+  { id: 'context', label: 'Context' },
 ]
 
-export function RightPanel({ agent, collapsed, width, onToggle }: Props) {
-  const [tab, setTab] = useState<RightPanelTab>('skills')
+export function RightPanel({
+  agent,
+  width = 320,
+  onClose,
+  activeTab,
+  onTabChange,
+  mobile = false,
+}: Props) {
   const data = contextPanelData[agent.id] ?? emptyContextPanelData
-
-  if (collapsed) {
-    return (
-      <aside
-        style={{
-          width: 56,
-          flexShrink: 0,
-          backgroundColor: 'var(--bg-white)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '14px 0 12px',
-          gap: 10,
-        }}
-      >
-        {PANEL_TABS.map(item => (
-          <ControlButton
-            key={item.id}
-            icon={item.icon}
-            onClick={() => {
-              setTab(item.id)
-              onToggle()
-            }}
-            active={tab === item.id}
-            tone={tab === item.id ? 'teal' : 'neutral'}
-            variant={tab === item.id ? 'soft' : 'ghost'}
-            size="sm"
-            aria-label={`Open ${item.label}`}
-            title={item.label}
-          />
-        ))}
-
-        <div
-          style={{
-            marginTop: 'auto',
-            width: 28,
-            height: 28,
-            borderRadius: 10,
-            backgroundColor: 'var(--bg-subtle)',
-            color: 'var(--text-mid)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 'var(--text-xs)',
-            fontWeight: 'var(--semibold)',
-          }}
-        >
-          {PANEL_TABS.find(item => item.id === tab)?.short}
-        </div>
-      </aside>
-    )
-  }
 
   return (
     <aside
+      id="agent-details-panel"
+      aria-label="Agent details"
       style={{
-        width,
+        width: mobile ? '100%' : width,
         flexShrink: 0,
         backgroundColor: 'var(--bg-white)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        borderLeft: mobile ? 'none' : '1px solid var(--border-default)',
       }}
     >
       <div
         style={{
+          padding: '14px 14px 0',
           borderBottom: '1px solid var(--border-default)',
-          padding: '0 14px',
-          display: 'flex',
-          gap: 14,
           flexShrink: 0,
         }}
       >
-        {PANEL_TABS.map(item => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => setTab(item.id)}
-            style={{
-              minHeight: 42,
-              padding: '0',
-              border: 'none',
-              borderBottom: `2px solid ${tab === item.id ? 'var(--text-ink)' : 'transparent'}`,
-              background: 'none',
-              color: tab === item.id ? 'var(--text-ink)' : 'var(--text-mid)',
-              fontSize: 'var(--text-sm)',
-              fontWeight: tab === item.id ? 'var(--semibold)' : 'var(--medium)',
-              cursor: 'pointer',
-            }}
-          >
-            {item.label}
-          </button>
-        ))}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 10,
+            paddingBottom: 10,
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: '10px',
+                fontWeight: 'var(--semibold)',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--text-muted-400)',
+              }}
+            >
+              Agent details
+            </div>
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: mobile ? 'var(--text-lg)' : 'var(--text-md)',
+                fontWeight: 'var(--bold)',
+                color: 'var(--text-ink)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {agent.name}
+            </div>
+          </div>
+
+          <ControlButton
+            icon={
+              <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M9 3 3 9M3 3l6 6" strokeLinecap="round" />
+              </svg>
+            }
+            onClick={onClose}
+            variant="ghost"
+            size="sm"
+            aria-label={mobile ? 'Back to agent activity' : 'Hide details'}
+          />
+        </div>
+
+        <div
+          role="tablist"
+          aria-label="Detail sections"
+          style={{
+            borderBottom: '1px solid var(--border-default)',
+            display: 'flex',
+            gap: 14,
+            flexShrink: 0,
+            overflowX: 'auto',
+          }}
+        >
+          {PANEL_TABS.map(item => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onTabChange(item.id)}
+              role="tab"
+              aria-selected={activeTab === item.id}
+              style={{
+                minHeight: 42,
+                padding: '0',
+                border: 'none',
+                borderBottom: `2px solid ${activeTab === item.id ? 'var(--text-ink)' : 'transparent'}`,
+                background: 'none',
+                color: activeTab === item.id ? 'var(--text-ink)' : 'var(--text-mid)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: activeTab === item.id ? 'var(--semibold)' : 'var(--medium)',
+                cursor: 'pointer',
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 14 }}>
-        {tab === 'skills' && <SkillsTab data={data} />}
-        {tab === 'mcp' && <McpTab data={data} />}
-        {tab === 'integrations' && <IntegrationsTab data={data} />}
-        {tab === 'context' && <ContextTab data={data} />}
+        {activeTab === 'skills' && <SkillsTab data={data} />}
+        {activeTab === 'mcp' && <McpTab data={data} />}
+        {activeTab === 'integrations' && <IntegrationsTab data={data} />}
+        {activeTab === 'context' && <ContextTab data={data} />}
       </div>
 
       <div

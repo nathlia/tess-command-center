@@ -1,25 +1,22 @@
+import type { KeyboardEvent, MouseEvent } from 'react'
 import type { Agent } from '../../types/agent'
-import { AgentIcon } from '../ui/AgentIcon'
+import { formatElapsed, formatTokens, getPrimaryStep } from '../../utils/agentHelpers'
 import { Badge } from '../ui/Badge'
+import { AgentIcon } from '../ui/AgentIcon'
 import { ModalityIcons } from '../ui/ModalityIcons'
 import { ProgressBar } from '../ui/ProgressBar'
+import { ProviderDot } from '../ui/ProviderDot'
+import { SectionLabel } from '../ui/SectionLabel'
+import { SurfaceCard } from '../ui/SurfaceCard'
 import type { UiTone } from '../ui/uiTones'
 
 interface Props {
   agent: Agent
   selected: boolean
   onClick: () => void
-}
-
-function formatElapsed(seconds: number) {
-  const minutes = Math.floor(seconds / 60)
-  const remainder = seconds % 60
-  return `${minutes}m${String(remainder).padStart(2, '0')}s`
-}
-
-function formatTokens(tokens: number) {
-  if (tokens >= 1000) return `${(tokens / 1000).toFixed(1)}k tk`
-  return `${tokens} tk`
+  onTogglePause?: () => void
+  buttonRef?: (node: HTMLDivElement | null) => void
+  variant?: 'sidebar' | 'browser'
 }
 
 function statusStyles(agent: Agent) {
@@ -27,7 +24,7 @@ function statusStyles(agent: Agent) {
     return {
       label: 'Paused',
       tone: 'amber' as UiTone,
-      progressTone: 'amber' as const,
+      shimmer: false,
     }
   }
 
@@ -35,7 +32,7 @@ function statusStyles(agent: Agent) {
     return {
       label: 'Done',
       tone: 'emerald' as UiTone,
-      progressTone: 'emerald' as const,
+      shimmer: false,
     }
   }
 
@@ -43,138 +40,324 @@ function statusStyles(agent: Agent) {
     return {
       label: 'Thinking',
       tone: 'amber' as UiTone,
-      progressTone: 'amber' as const,
+      shimmer: true,
     }
   }
 
   return {
-    label: 'Live',
+    label: 'Executing',
     tone: 'teal' as UiTone,
-    progressTone: 'teal' as const,
+    shimmer: true,
   }
 }
 
-export function SidebarAgentCard({ agent, selected, onClick }: Props) {
+function contextTone(ctx: number) {
+  if (ctx >= 80) return 'amber' as const
+  return 'neutral' as const
+}
+
+function stopEvent(event: MouseEvent<HTMLButtonElement>) {
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+export function SidebarAgentCard({
+  agent,
+  selected,
+  onClick,
+  onTogglePause,
+  buttonRef,
+  variant = 'sidebar',
+}: Props) {
   const status = statusStyles(agent)
+  const browser = variant === 'browser'
+  const primaryStep = getPrimaryStep(agent.steps)
+  const latestLog = agent.logs[agent.logs.length - 1]
+  const contextValue = Math.round(agent.ctx)
+  const panelLabel = agent.paused
+    ? 'Paused'
+    : agent.status === 'done'
+      ? 'Latest action'
+      : latestLog?.type === 'think'
+        ? 'Thinking'
+        : 'Current action'
+  const panelText = latestLog?.thought ?? latestLog?.message ?? primaryStep?.label ?? agent.currentTask
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.currentTarget !== event.target) return
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onClick()
+    }
+  }
 
   return (
-    <button
+    <div
+      ref={buttonRef}
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
+      aria-pressed={!browser && selected}
+      aria-label={`Open ${agent.name}`}
+      data-browser={browser ? 'true' : 'false'}
       style={{
         width: '100%',
         textAlign: 'left',
-        padding: '12px',
-        borderRadius: 14,
+        padding: browser ? '18px' : '14px',
+        borderRadius: browser ? 20 : 16,
         border: `1px solid ${selected ? 'var(--border-ink)' : 'var(--border-default)'}`,
-        backgroundColor: selected ? 'var(--bg-subtle)' : 'var(--bg-white)',
+        backgroundColor: 'var(--bg-white)',
         cursor: 'pointer',
-        transition: 'background-color 120ms, border-color 120ms, transform 120ms',
+        boxShadow: browser
+          ? '0 8px 22px rgba(17, 24, 39, 0.04)'
+          : 'none',
+        transition: 'background-color 120ms, border-color 120ms, transform 120ms, box-shadow 120ms',
       }}
       className="sidebar-agent-card"
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: browser ? 12 : 10 }}>
         <div
           style={{
-            width: 34,
-            height: 34,
-            borderRadius: 11,
+            width: browser ? 46 : 36,
+            height: browser ? 46 : 36,
+            borderRadius: browser ? 14 : 12,
             border: '1px solid var(--border-default)',
-            backgroundColor: selected ? 'var(--bg-white)' : 'var(--bg-subtle)',
+            backgroundColor: selected ? 'var(--bg-subtle)' : 'var(--bg-white)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
           }}
         >
-          <AgentIcon icon={agent.icon} size={16} />
+          <AgentIcon icon={agent.icon} size={browser ? 17 : 15} />
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <span
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontWeight: 'var(--semibold)',
+                  color: 'var(--text-ink)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  fontSize: browser ? 'var(--text-2xl)' : 'var(--text-sm)',
+                  lineHeight: 1.08,
+                }}
+              >
+                {agent.name}
+              </div>
+
+              <div
+                style={{
+                  marginTop: browser ? 5 : 6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  minWidth: 0,
+                  color: 'var(--text-mid)',
+                  fontSize: browser ? 'var(--text-lg)' : 'var(--text-xs)',
+                }}
+              >
+                <ProviderDot provider={agent.provider} size={browser ? 14 : 12} />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {agent.model}
+                </span>
+              </div>
+            </div>
+
+            <Badge tone={status.tone} size={browser ? 'sm' : 'sm'} uppercase shimmer={status.shimmer} style={{ flexShrink: 0 }}>
+              {status.label}
+            </Badge>
+          </div>
+
+          {!browser && (
+            <div
               style={{
-                fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--semibold)',
-                color: 'var(--text-ink)',
-                flex: 1,
+                marginTop: 6,
+                fontSize: 'var(--text-xs)',
+                color: 'var(--text-mid)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
               }}
             >
-              {agent.name}
-            </span>
-
-            <Badge tone={status.tone} size="sm" uppercase style={{ flexShrink: 0 }}>
-              {status.label}
-            </Badge>
-          </div>
-
-          <div
-            style={{
-              marginTop: 4,
-              fontSize: 'var(--text-xs)',
-              color: 'var(--text-mid)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {agent.provider.group} / {agent.model}
-          </div>
+              {primaryStep?.label ?? agent.currentTask}
+            </div>
+          )}
         </div>
       </div>
 
-      <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <ProgressBar value={agent.progress} tone={status.progressTone} style={{ flex: 1 }} />
-        <span
-          style={{
-            minWidth: 34,
-            fontSize: 'var(--text-xs)',
-            fontWeight: 'var(--semibold)',
-            color: 'var(--text-ink)',
-            textAlign: 'right',
-          }}
-        >
-          {Math.round(agent.progress)}%
-        </span>
+      <div style={{ marginTop: browser ? 16 : 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <SectionLabel style={{ fontSize: browser ? '10px' : '9px' }}>Context</SectionLabel>
+          <span
+            style={{
+              marginLeft: 'auto',
+              minWidth: browser ? 40 : 34,
+              fontSize: browser ? 'var(--text-lg)' : 'var(--text-xs)',
+              fontWeight: 'var(--semibold)',
+              color: agent.ctx >= 80 ? 'var(--text-amber)' : 'var(--text-mid)',
+              textAlign: 'right',
+            }}
+          >
+            {contextValue}%
+          </span>
+        </div>
+
+        <ProgressBar
+          value={contextValue}
+          tone={contextTone(agent.ctx)}
+          height={browser ? 6 : 5}
+          style={{ marginTop: browser ? 9 : 8 }}
+          trackColor="var(--bg-light)"
+        />
       </div>
 
       <div
         style={{
-          marginTop: 10,
+          marginTop: browser ? 12 : 10,
           display: 'flex',
           alignItems: 'center',
-          gap: 6,
-          fontSize: 'var(--text-xs)',
+          gap: browser ? 8 : 6,
+          flexWrap: 'wrap',
+          fontSize: browser ? 'var(--text-lg)' : 'var(--text-xs)',
           color: 'var(--text-mid)',
         }}
       >
         <span>{agent.archetype}</span>
         <span>/</span>
-        <span>{Math.round(agent.ctx)}% ctx</span>
-        <span>/</span>
         <span>{formatElapsed(agent.elapsed)}</span>
-        <span style={{ marginLeft: 'auto' }}>{formatTokens(agent.tokens)}</span>
+        <span
+          style={{
+            marginLeft: 'auto',
+            fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+            color: 'var(--text-ink)',
+            fontSize: browser ? 'var(--text-lg)' : 'var(--text-xs)',
+          }}
+        >
+          {formatTokens(agent.tokens, ' tk')}
+        </span>
       </div>
 
-      <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
-        <ModalityIcons active={agent.modalities} generating={agent.generatingModality} />
-      </div>
+      {browser ? (
+        <SurfaceCard tone="subtle" padding="12px 14px" radius={14} style={{ marginTop: 14 }}>
+          <SectionLabel style={{ display: 'block', marginBottom: 8, fontSize: '10px' }}>
+            {panelLabel}
+          </SectionLabel>
+          <div
+            style={{
+              minHeight: 44,
+              color: 'var(--text-ink)',
+              fontSize: 'var(--text-xl)',
+              lineHeight: 1.5,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {panelText}
+          </div>
+        </SurfaceCard>
+      ) : null}
+
+      {browser ? (
+        <div
+          style={{
+            marginTop: 12,
+            paddingTop: 10,
+            borderTop: '1px solid var(--border-default)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <button
+            type="button"
+            onClick={event => {
+              stopEvent(event)
+              onClick()
+            }}
+            style={{
+              border: 'none',
+              background: 'none',
+              padding: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              color: 'var(--text-teal)',
+              fontSize: 'var(--text-sm)',
+              fontWeight: 'var(--semibold)',
+              cursor: 'pointer',
+            }}
+          >
+            View details
+            <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M2.5 6h7" strokeLinecap="round" />
+              <path d="m6.5 2.5 3.5 3.5-3.5 3.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+            {onTogglePause && (
+              <button
+                type="button"
+                onClick={event => {
+                  stopEvent(event)
+                  onTogglePause()
+                }}
+                aria-label={agent.paused ? `Resume ${agent.name}` : `Pause ${agent.name}`}
+                style={footerActionStyle}
+              >
+                {agent.paused ? (
+                  <svg width={13} height={13} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M3 2.5 9 6 3 9.5V2.5Z" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  <svg width={13} height={13} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M3.5 2.5v7M8.5 2.5v7" strokeLinecap="round" />
+                  </svg>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+          <ModalityIcons active={agent.modalities} generating={agent.generatingModality} />
+        </div>
+      )}
 
       <style>{`
         .sidebar-agent-card:hover {
           background-color: var(--bg-subtle) !important;
           border-color: var(--border-black-10) !important;
           transform: translateY(-1px);
+          box-shadow: 0 12px 28px rgba(17, 24, 39, 0.07);
+        }
+        .sidebar-agent-card:focus-visible {
+          outline: 2px solid var(--border-teal-15);
+          outline-offset: 2px;
         }
       `}</style>
-    </button>
+    </div>
   )
 }
+
+const footerActionStyle = {
+  width: 30,
+  height: 30,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 8,
+  border: '1px solid var(--border-default)',
+  backgroundColor: 'var(--bg-white)',
+  color: 'var(--text-mid)',
+  cursor: 'pointer',
+  flexShrink: 0,
+} as const

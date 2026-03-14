@@ -70,6 +70,14 @@ V2 is the TESS-native shell:
 
 The central feed stays focused on the selected agent. The right panel gives supporting context without taking over the main workflow. The left side makes it easier to scan and switch across agents.
 
+The current interaction model is progressive:
+
+- default state shows the agent cards across the full workspace
+- selecting an agent opens the middle activity panel
+- `See details` opens the right context panel
+- collapsed panels stay recoverable through visible edge stubs
+- mobile uses one pane at a time instead of trying to preserve the desktop layout
+
 ### Why V2 is better
 
 - It matches the product language from TESS references more closely.
@@ -77,6 +85,7 @@ The central feed stays focused on the selected agent. The right panel gives supp
 - It gives the main activity stream room to breathe.
 - It supports richer inspection surfaces such as skills, MCP, integrations, and context.
 - It feels more like a real operator workspace than a demo layout.
+- It degrades more cleanly from wide desktop to tablet to mobile without hiding the user in dead-end states.
 
 ## Current Scope
 
@@ -89,7 +98,8 @@ The central feed stays focused on the selected agent. The right panel gives supp
 - feed tabs: Activity, Output, Memory, Files
 - right-panel tabs: Skills, MCP, Integrations, Context
 - left and right panel resize/collapse
-- spawn flow for adding a mock agent
+- responsive 3/2/1 behavior with visible recovery stubs
+- progressive 1/2/3-panel detail flow
 
 ### Out of scope
 
@@ -97,7 +107,6 @@ The central feed stays focused on the selected agent. The right panel gives supp
 - authentication
 - production data persistence
 - real tool integrations
-- split pane
 - interrupt / stop-agent control
 
 ## Target Experience
@@ -107,7 +116,7 @@ The finished product should feel like an active TESS workspace where the user ca
 At product level, "done" means:
 
 - the shell structure is stable and visually coherent
+- the layout works cleanly on desktop and mobile
 - the simulation feels believable
 - the user can inspect a selected agent in detail
-- the user can create a new mock agent from the UI
 - the final delivery docs explain the process and design decisions clearly

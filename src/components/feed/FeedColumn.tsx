@@ -1,7 +1,7 @@
+import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
 import type { Agent } from '../../types/agent'
 import { FeedHeader } from './FeedHeader'
-import { ModelBar } from './ModelBar'
 import { CtxAlert } from './CtxAlert'
 import { FeedTabs } from './FeedTabs'
 import { ActivityFeed } from './ActivityFeed'
@@ -10,53 +10,71 @@ import { MemoryTab } from './MemoryTab'
 import { FilesTab } from './FilesTab'
 import { InputBar } from './InputBar'
 
-type Tab = 'activity' | 'output' | 'memory' | 'files'
+export type FeedTab = 'activity' | 'output' | 'memory' | 'files'
 
 interface Props {
   agent: Agent
   onPause: () => void
-  onSplit: () => void
-  splitId: string | null
-  showSplit?: boolean
+  onClose: () => void
+  onOpenDetails: () => void
+  detailsOpen: boolean
   onSend: (agentId: string, msg: string) => void
+  activeTab: FeedTab
+  onTabChange: (tab: FeedTab) => void
+  detailsButtonRef?: RefObject<HTMLButtonElement | null>
+  mobile?: boolean
+  style?: CSSProperties
 }
 
-export function FeedColumn({ agent, onPause, onSplit, splitId, showSplit = true, onSend }: Props) {
-  const [tab, setTab] = useState<Tab>('activity')
+export function FeedColumn({
+  agent,
+  onPause,
+  onClose,
+  onOpenDetails,
+  detailsOpen,
+  onSend,
+  activeTab,
+  onTabChange,
+  detailsButtonRef,
+  mobile = false,
+  style,
+}: Props) {
   const [ctxDismissed, setCtxDismissed] = useState(false)
 
   return (
     <div style={{
-      flex: 1,
+      flex: mobile ? undefined : 1,
       minWidth: 0,
       display: 'flex',
       flexDirection: 'column',
       backgroundColor: 'var(--bg-white)',
       overflow: 'hidden',
+      ...style,
     }}>
       <FeedHeader
         agent={agent}
         onPause={onPause}
-        onSplit={onSplit}
-        splitActive={!!splitId}
-        showSplit={showSplit}
+        onClose={onClose}
+        onOpenDetails={onOpenDetails}
+        detailsOpen={detailsOpen}
+        detailsButtonRef={detailsButtonRef}
+        mobile={mobile}
       />
-      <ModelBar agent={agent} />
 
       {agent.ctx >= 60 && !ctxDismissed && (
         <CtxAlert ctx={agent.ctx} onDismiss={() => setCtxDismissed(true)} />
       )}
 
-      <FeedTabs active={tab} onChange={(t) => setTab(t as Tab)} />
+      <FeedTabs active={activeTab} onChange={(t) => onTabChange(t as FeedTab)} />
 
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        {tab === 'activity' && <ActivityFeed agent={agent} />}
-        {tab === 'output'   && <OutputTab agent={agent} />}
-        {tab === 'memory'   && <MemoryTab agentId={agent.id} />}
-        {tab === 'files'    && <FilesTab agentId={agent.id} />}
+        {activeTab === 'activity' && <ActivityFeed agent={agent} />}
+        {activeTab === 'output'   && <OutputTab agent={agent} />}
+        {activeTab === 'memory'   && <MemoryTab agentId={agent.id} />}
+        {activeTab === 'files'    && <FilesTab agentId={agent.id} />}
       </div>
 
-      <InputBar agentId={agent.id} onSend={onSend} />
+      <InputBar agentId={agent.id} agentLabel={agent.name} onSend={onSend} />
     </div>
   )
 }

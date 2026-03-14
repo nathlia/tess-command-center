@@ -17,18 +17,23 @@ const TABS: { id: Tab; label: string }[] = [
 export function FeedTabs({ active, onChange }: Props) {
   return (
     <div
+      role="tablist"
+      aria-label="Feed sections"
       style={{
         display: 'flex',
         gap: 6,
         padding: '10px 18px',
         borderBottom: '1px solid var(--border-default)',
         backgroundColor: 'var(--bg-white)',
+        overflowX: 'auto',
       }}
     >
       {TABS.map(tab => (
         <ControlButton
           key={tab.id}
           onClick={() => onChange(tab.id)}
+          role="tab"
+          aria-selected={active === tab.id}
           active={active === tab.id}
           variant="ghost"
           size="sm"

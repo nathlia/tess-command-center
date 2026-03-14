@@ -4,7 +4,7 @@
 
 - Last updated: 2026-03-13
 - Repo health: build and lint are green
-- Current app state: V2 shell is mounted; spawn flow and README are still open
+- Current app state: V2 shell is mounted, responsive, panel-driven, and using recoverable panel stubs; README and final polish are still open
 
 ## Milestones
 
@@ -62,6 +62,31 @@ The desktop shell was reworked to match the current target structure:
 
 The feed header was also simplified so it reads more like the TESS references and less like a prototype breadcrumb layout.
 
+### 6. Responsive panel system
+
+The shell was then reworked around a clearer interaction model:
+
+- default view: agent cards
+- click an agent card: open the middle activity panel
+- click `See details`: open the right detail panel
+- drag panels small enough: collapse them
+- mobile: switch to a one-pane flow instead of squeezing desktop columns onto a phone
+
+This pass also improved the resize-handle visuals and cleaned up the rail buttons so they feel less generic.
+
+### 7. Workspace interaction rebuild
+
+The panel model was rebuilt after the first responsive pass exposed dead ends and hidden-state bugs.
+
+Main changes:
+
+- default desktop view now uses full-width agent cards instead of an empty placeholder
+- the agent list switches between browser mode and compact sidebar mode
+- collapsed agents, activity, and details surfaces now stay recoverable through visible edge stubs
+- feed and right-panel tabs are controlled so they do not reset on close/reopen
+- resize handles now drag from the grip, show collapse feedback, and keep collapse as a separate action
+- mobile uses an explicit screen stack with back navigation instead of hidden multi-column leftovers
+
 ## Key Decisions
 
 ### TESS over prototype
@@ -84,13 +109,24 @@ The interrupt action was removed from the mounted UI because it implied behavior
 
 The modality display no longer shows every possible modality at once. It now shows only the active/generated modality to reduce noise.
 
-### Split pane dropped
+### Progressive disclosure over always-open panels
 
-Split pane is no longer part of the planned deliverable. The product is now focused on making the single selected-agent workspace strong instead of adding a second feed surface.
+The app no longer assumes the middle and right panels must always be visible. The current model opens more detail only when the user asks for it, which makes the layout easier to understand on both desktop and mobile.
+
+### Accessibility and cleanup pass
+
+The mounted shell received a focused cleanup pass:
+
+- better labels on controls
+- tab semantics for feed and detail sections
+- clearer closable panel behavior
+- a correction to panel-resize direction logic
+
+That cleanup also removed leftover paths that no longer matched product scope: `useSplitPane`, the old `Sidebar`, `InterruptButton`, and the unused `spawnAgent` branch in `useAgentSimulation`.
 
 ## Current Open Items
 
-- spawn flow
 - README completion
 - final visual polish
 - manual browser verification of unsupported voice-input behavior
+- manual browser QA across real desktop, tablet, and mobile viewport sizes

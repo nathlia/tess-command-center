@@ -20,6 +20,7 @@ interface Props {
   size?: BadgeSize
   dot?: boolean
   uppercase?: boolean
+  shimmer?: boolean
   style?: CSSProperties
 }
 
@@ -29,6 +30,7 @@ export function Badge({
   size = 'md',
   dot = false,
   uppercase = false,
+  shimmer = false,
   style,
 }: Props) {
   const toneStyle = UI_TONES[tone]
@@ -36,6 +38,7 @@ export function Badge({
 
   return (
     <span
+      className={shimmer ? 'badge-shimmer' : undefined}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -50,6 +53,9 @@ export function Badge({
         letterSpacing: uppercase ? '0.08em' : 'normal',
         textTransform: uppercase ? 'uppercase' : 'none',
         whiteSpace: 'nowrap',
+        position: shimmer ? 'relative' : undefined,
+        overflow: shimmer ? 'hidden' : undefined,
+        isolation: shimmer ? 'isolate' : undefined,
         ...style,
       }}
     >

@@ -5,17 +5,33 @@ interface Props {
   agents: Agent[]
   selectedId: string
   onSelect: (id: string) => void
-  width: number
+  onTogglePause?: (id: string) => void
+  width: number | string
+  mobile?: boolean
+  mode?: 'browser' | 'sidebar'
+  registerCardRef?: (agentId: string, node: HTMLElement | null) => void
 }
 
-export function AgentsPanel({ agents, selectedId, onSelect, width }: Props) {
+export function AgentsPanel({
+  agents,
+  selectedId,
+  onSelect,
+  onTogglePause,
+  width,
+  mobile = false,
+  mode = 'sidebar',
+  registerCardRef,
+}: Props) {
   const running = agents.filter(agent => agent.status === 'executing' && !agent.paused).length
   const done = agents.filter(agent => agent.status === 'done').length
   const idle = agents.length - running - done
+  const browser = mode === 'browser'
 
   return (
     <aside
+      aria-label="Agents"
       style={{
+        flex: browser ? 1 : undefined,
         width,
         flexShrink: 0,
         backgroundColor: 'var(--bg-white)',
@@ -23,18 +39,19 @@ export function AgentsPanel({ agents, selectedId, onSelect, width }: Props) {
         flexDirection: 'column',
         minHeight: 0,
         overflow: 'hidden',
+        borderRight: browser || mobile ? 'none' : '1px solid var(--border-default)',
       }}
     >
       <div
         style={{
-          padding: '28px 20px 14px',
+          padding: mobile ? '20px 16px 12px' : browser ? '22px 22px 12px' : '28px 20px 14px',
           borderBottom: '1px solid var(--border-default)',
         }}
       >
         <h1
           style={{
             margin: 0,
-            fontSize: 'var(--text-2xl)',
+            fontSize: mobile ? 'var(--text-xl)' : 'var(--text-2xl)',
             lineHeight: 1,
             fontWeight: 'var(--bold)',
             color: 'var(--text-ink)',
@@ -64,16 +81,34 @@ export function AgentsPanel({ agents, selectedId, onSelect, width }: Props) {
           flex: 1,
           minHeight: 0,
           overflowY: 'auto',
-          padding: '12px 12px 16px',
+          padding: mobile ? '12px 10px 16px' : browser ? '16px 20px 20px' : '12px 12px 16px',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div
+          style={
+            browser
+              ? {
+                  display: 'grid',
+                  gridTemplateColumns: mobile ? '1fr' : 'repeat(auto-fit, minmax(320px, 1fr))',
+                  gap: 14,
+                  alignContent: 'start',
+                }
+              : {
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                }
+          }
+        >
           {agents.map(agent => (
             <SidebarAgentCard
               key={agent.id}
               agent={agent}
-              selected={agent.id === selectedId}
+              selected={!browser && agent.id === selectedId}
               onClick={() => onSelect(agent.id)}
+              onTogglePause={browser && agent.status !== 'done' ? () => onTogglePause?.(agent.id) : undefined}
+              buttonRef={node => registerCardRef?.(agent.id, node)}
+              variant={browser ? 'browser' : 'sidebar'}
             />
           ))}
         </div>

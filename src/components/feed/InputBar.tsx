@@ -4,10 +4,11 @@ import { ControlButton } from '../ui/ControlButton'
 
 interface Props {
   agentId: string
+  agentLabel: string
   onSend: (agentId: string, msg: string) => void
 }
 
-export function InputBar({ agentId, onSend }: Props) {
+export function InputBar({ agentId, agentLabel, onSend }: Props) {
   const [value, setValue] = useState('')
   const { listening, toggle } = useVoiceInput(text => setValue(current => (current ? `${current} ${text}` : text)))
 
@@ -63,7 +64,8 @@ export function InputBar({ agentId, onSend }: Props) {
               submit()
             }
           }}
-          placeholder={`Send an instruction to ${agentId}`}
+          aria-label={`Send an instruction to ${agentLabel}`}
+          placeholder={`Send an instruction to ${agentLabel}`}
           style={{
             flex: 1,
             minWidth: 0,

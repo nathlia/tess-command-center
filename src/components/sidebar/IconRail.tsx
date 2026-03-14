@@ -14,6 +14,7 @@ const PRIMARY_ITEMS = [
 export function IconRail() {
   return (
     <aside
+      aria-label="Primary navigation"
       style={{
         width: 56,
         flexShrink: 0,

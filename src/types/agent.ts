@@ -36,6 +36,7 @@ export interface LogEntry {
 
 export interface ScriptStep {
   delay: number
+  stepIndex: number
   type: LogEventType
   text: string
   progress: number
@@ -52,6 +53,7 @@ export interface Agent {
   progress: number
   currentTask: string
   tokens: number
+  tokenBudget: number
   logs: LogEntry[]
   archetype: string
   elapsed: number
