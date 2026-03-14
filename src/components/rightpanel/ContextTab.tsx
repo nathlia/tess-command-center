@@ -22,13 +22,13 @@ export function ContextTab({ data }: Props) {
     <PanelSection title="Window breakdown">
       <SurfaceCard tone="subtle" padding="12px" radius={12}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
-          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--semibold)', color: 'var(--text-ink)' }}>
+          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--medium)', color: 'var(--text-ink)' }}>
             {data.ctx.total}k context window
           </span>
           <span
             style={{
               fontSize: 'var(--text-sm)',
-              fontWeight: 'var(--bold)',
+              fontWeight: 'var(--medium)',
               color: totalPct > 70 ? 'var(--text-amber)' : 'var(--text-ink)',
             }}
           >
@@ -79,9 +79,9 @@ export function ContextTab({ data }: Props) {
                     flexShrink: 0,
                   }}
                 />
-                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-mid)' }}>{segment.label}</span>
+                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-dark-600)' }}>{segment.label}</span>
               </div>
-              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--medium)', color: 'var(--text-ink)' }}>
+              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--medium)', color: 'var(--text-dark-900)' }}>
                 {segment.used}
               </span>
             </div>
@@ -99,19 +99,19 @@ export function ContextTab({ data }: Props) {
             borderTop: '1px solid var(--border-default)',
           }}
         >
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-mid)' }}>Total used</span>
-          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--bold)', color: 'var(--text-ink)' }}>
+          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-dark-600)' }}>Total used</span>
+          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--medium)', color: 'var(--text-ink)' }}>
             {totalUsed} / {data.ctx.total}k
           </span>
         </div>
       </SurfaceCard>
 
       {totalPct > 65 && (
-        <SurfaceCard tone="warm" padding="12px" radius={12}>
-          <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--semibold)', color: 'var(--text-ink)' }}>
+        <SurfaceCard tone="purple" padding="12px" radius={12}>
+          <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--medium)', color: 'var(--text-purple)' }}>
             Recommendation
           </div>
-          <div style={{ marginTop: 4, fontSize: 'var(--text-xs)', color: 'var(--text-mid)', lineHeight: 1.6 }}>
+          <div style={{ marginTop: 4, fontSize: 'var(--text-xs)', color: 'var(--text-dark-600)', lineHeight: 1.6 }}>
             Consider summarizing earlier MCP results or moving the agent to a larger context model if usage keeps climbing.
           </div>
         </SurfaceCard>

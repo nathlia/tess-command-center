@@ -43,7 +43,7 @@ function McpCard({ item }: { item: McpItem }) {
                 flex: 1,
                 minWidth: 0,
                 fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--semibold)',
+                fontWeight: 'var(--medium)',
                 color: 'var(--text-ink)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -62,8 +62,8 @@ function McpCard({ item }: { item: McpItem }) {
             style={{
               marginTop: 4,
               fontSize: 'var(--text-xs)',
-              color: 'var(--text-mid)',
-              lineHeight: 1.5,
+              color: 'var(--text-dark-600)',
+              lineHeight: 1.55,
             }}
           >
             {item.desc}
@@ -77,7 +77,8 @@ function McpCard({ item }: { item: McpItem }) {
               gap: 8,
               marginTop: 8,
               fontSize: 'var(--text-xs)',
-              color: 'var(--text-mid)',
+              color: 'var(--text-slate)',
+              fontWeight: 'var(--medium)',
             }}
           >
             <span>{item.calls} calls</span>

@@ -16,7 +16,16 @@ export function PanelMetricCard({ label, value, mono = false }: Props) {
         backgroundColor: 'var(--bg-white)',
       }}
     >
-      <SectionLabel style={{ display: 'block', marginBottom: 5, fontSize: '10px', letterSpacing: '0.06em' }}>
+      <SectionLabel
+        style={{
+          display: 'block',
+          marginBottom: 5,
+          fontSize: '10px',
+          letterSpacing: '0.06em',
+          color: 'var(--text-dark-600)',
+          fontWeight: 'var(--medium)',
+        }}
+      >
         {label}
       </SectionLabel>
       <div

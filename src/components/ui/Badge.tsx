@@ -49,7 +49,7 @@ export function Badge({
         backgroundColor: toneStyle.backgroundColor,
         color: toneStyle.color,
         fontSize: sizeStyle.fontSize,
-        fontWeight: 'var(--semibold)',
+        fontWeight: 'var(--medium)',
         letterSpacing: uppercase ? '0.08em' : 'normal',
         textTransform: uppercase ? 'uppercase' : 'none',
         whiteSpace: 'nowrap',

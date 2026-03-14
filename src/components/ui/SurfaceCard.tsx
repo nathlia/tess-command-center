@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 
-type SurfaceTone = 'default' | 'subtle' | 'warm'
+type SurfaceTone = 'default' | 'subtle' | 'warm' | 'purple'
 
 const SURFACE_STYLES: Record<SurfaceTone, { backgroundColor: string; borderColor: string }> = {
   default: {
@@ -14,6 +14,10 @@ const SURFACE_STYLES: Record<SurfaceTone, { backgroundColor: string; borderColor
   warm: {
     backgroundColor: 'var(--bg-warm)',
     borderColor: 'var(--border-tan-20)',
+  },
+  purple: {
+    backgroundColor: 'var(--bg-purple-tint)',
+    borderColor: 'var(--bg-purple-20)',
   },
 }
 

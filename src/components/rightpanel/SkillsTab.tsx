@@ -57,7 +57,7 @@ function SkillCard({ skill }: { skill: SkillItem }) {
                 flex: 1,
                 minWidth: 0,
                 fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--semibold)',
+                fontWeight: 'var(--medium)',
                 color: 'var(--text-ink)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -76,8 +76,8 @@ function SkillCard({ skill }: { skill: SkillItem }) {
             style={{
               marginTop: 4,
               fontSize: 'var(--text-xs)',
-              color: 'var(--text-mid)',
-              lineHeight: 1.5,
+              color: 'var(--text-dark-600)',
+              lineHeight: 1.55,
             }}
           >
             {skill.desc}
@@ -91,7 +91,8 @@ function SkillCard({ skill }: { skill: SkillItem }) {
                 gap: 12,
                 marginTop: 6,
                 fontSize: 'var(--text-xs)',
-                color: 'var(--text-mid)',
+                color: 'var(--text-slate)',
+                fontWeight: 'var(--medium)',
               }}
             >
               <span>Calls {skill.calls}</span>

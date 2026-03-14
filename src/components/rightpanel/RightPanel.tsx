@@ -65,34 +65,19 @@ export function RightPanel({
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 10,
-            paddingBottom: 10,
+            paddingBottom: 12,
           }}
         >
-          <div style={{ minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: '10px',
-                fontWeight: 'var(--semibold)',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--text-muted-400)',
-              }}
-            >
-              Agent details
-            </div>
-            <div
-              style={{
-                marginTop: 4,
-                fontSize: mobile ? 'var(--text-lg)' : 'var(--text-md)',
-                fontWeight: 'var(--bold)',
-                color: 'var(--text-ink)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {agent.name}
-            </div>
+          <div
+            style={{
+              fontSize: '10px',
+              fontWeight: 'var(--medium)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--text-dark-600)',
+            }}
+          >
+            Agent details
           </div>
 
           <Tooltip content={mobile ? 'Back' : 'Hide details'} side="bottom" delay={500}>

@@ -57,7 +57,7 @@ function IntegrationCard({ item }: { item: IntegrationItem }) {
                 flex: 1,
                 minWidth: 0,
                 fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--semibold)',
+                fontWeight: 'var(--medium)',
                 color: 'var(--text-ink)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -76,8 +76,8 @@ function IntegrationCard({ item }: { item: IntegrationItem }) {
             style={{
               marginTop: 4,
               fontSize: 'var(--text-xs)',
-              color: 'var(--text-mid)',
-              lineHeight: 1.5,
+              color: 'var(--text-dark-600)',
+              lineHeight: 1.55,
             }}
           >
             {descriptionForStatus(item.status)}

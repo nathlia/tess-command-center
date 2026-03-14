@@ -27,9 +27,9 @@ export function PanelItemCard({
         }
       : variant === 'dim'
         ? {
-            backgroundColor: 'var(--bg-off-white)',
+            backgroundColor: 'var(--bg-subtle)',
             borderColor: 'var(--border-default)',
-            opacity: 0.68,
+            opacity: 1,
           }
         : {
             backgroundColor: 'var(--bg-white)',

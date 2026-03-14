@@ -45,7 +45,15 @@ export function StepTracker({ steps }: Props) {
           textAlign: 'left',
         }}
       >
-        <SectionLabel style={{ display: 'block', fontSize: '10px', letterSpacing: '0.06em' }}>
+        <SectionLabel
+          style={{
+            display: 'block',
+            fontSize: '10px',
+            letterSpacing: '0.06em',
+            color: 'var(--text-dark-600)',
+            fontWeight: 'var(--medium)',
+          }}
+        >
           Steps
         </SectionLabel>
 
@@ -183,7 +191,7 @@ function StepRow({ step, isLast }: { step: AgentStep; isLast: boolean }) {
         style={{
           fontSize: '10px',
           lineHeight: 1,
-          color: 'var(--text-muted-400)',
+          color: 'var(--text-muted-500)',
           fontVariantNumeric: 'tabular-nums',
           textAlign: 'right',
         }}
