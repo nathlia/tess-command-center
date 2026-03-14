@@ -9,125 +9,92 @@
 
 ---
 
-## V3 — Feed Polish & Status System
+## V3 - Feed Polish and Status System
 
 Reference: `docs/refs/agent-dashboard-v5.html`
 
-### Goal
+### Current direction
 
-Improve the card layout and visual polish, add real status logic (7 statuses), group agents by chat, and add filter tabs with counts. Keep the existing shell, drag/resize panels, and right panel untouched.
+Keep the current shell, grouping model, and simulated data flow. Continue polishing the agents surface toward the v5 reference without forcing a large type-system rewrite before the UI is ready.
 
-### Out of scope
+### What is done in repo
 
-- Inline question block for needs-input agents
-- Right panel detail view redesign
-- Rail navigation changes
-- Any backend / real data
+- [x] Browser-mode agent cards use one stable DOM structure across active, paused, and done states.
+- [x] Browser-mode card snippet is locked to one line with ellipsis to avoid height jumps.
+- [x] Open-activity sidebar cards support compact filtering with `all / running / paused / done`.
+- [x] Selected agent stays visible in the sidebar even when the active filter would normally hide it.
+- [x] Agents are grouped by chat in both browser mode and open-activity sidebar mode.
+- [x] Browser-mode agents screen has a full filter bar with shared counts and search by name or task.
+- [x] Browser-mode right-side activity stub was removed; selecting an agent opens the actual activity panel instead.
+- [x] Feed header now carries model and current-task context so all feed tabs inherit the same summary line.
+- [x] Open-activity sidebar cards show richer compact detail, including task and model context.
+- [x] Resize handles have cleaner tooltip copy and no longer fight the collapse button as aggressively.
+- [x] Right-panel footer is lighter: tighter metric cards, calmer steps list, last 3 steps by default, and reduced motion.
 
----
+### What is intentionally not done yet
 
-## V3 Step Checklist
-
-Ordered easiest → hardest.
-
-### Step 1 — Card layout & design `[card]`
-**What:** Rebuild `SidebarAgentCard` to match the v5 card layout.
-- Header row: icon (34×34 rounded) + name + model badge + status badge (right)
-- Context bar: label "CONTEXT" + 3px progress track (colored by status) + percentage
-- Meta row: archetype/role (left) + elapsed + token count (right, monospace)
-- Snippet section: status label (THINKING / EXECUTING / STALLED / WAITING / ERROR / PAUSED) + 2-line text with animated cursor for live/thinking
-- Footer: "View details →" link (left) + status action button (right)
-- Done card: compact horizontal row — icon + name + task + status badge + elapsed + tokens. No snippet, no context bar.
-- Card border-radius 14px, hover lift, staggered entrance animation
-
-**Files:** `src/components/sidebar/SidebarAgentCard.tsx`
-
-**Status:** pending
+- [ ] 7-status domain model expansion is not implemented.
+- [ ] Mock data and simulation still use the current 3-status model plus `paused`.
+- [ ] Browser-mode completed agents are not split into a separate compact done row yet.
+- [ ] Main filter system still uses `all / running / paused / done`, not the future expanded state set.
 
 ---
 
-### Step 2 — Status expansion `[types]`
-**What:** Expand `AgentStatus` from 3 to 7 values and update all status-dependent styling.
-- New type: `'live' | 'stalled' | 'needs-input' | 'error' | 'paused' | 'done' | 'cancelled'`
-- Map old `thinking → live`, `executing → live`, keep `done`
-- Per-status card treatment: pulsing teal bg (live), amber pulse (stalled), purple pulse (needs-input), red border (error), opacity 0.72 (paused), opacity 0.5 (cancelled)
-- Per-status badge color and icon
-- Per-status snippet label
-- Per-status footer action: pause (live/stalled), resume (paused), retry (error), cancel (active)
+## Things To Do
 
-**Files:** `src/types/agent.ts`, `src/components/sidebar/SidebarAgentCard.tsx`, `src/index.css` (pulse keyframes)
+### 1. Status system expansion
 
-**Status:** pending
+- Expand `AgentStatus` beyond `thinking | executing | done`.
+- Introduce the future states needed by the v5 direction:
+  - `live`
+  - `stalled`
+  - `needs-input`
+  - `error`
+  - `paused`
+  - `done`
+  - `cancelled`
+- Update badges, card tone, snippet label, and footer actions for each state.
 
----
+### 2. Mock data and simulation refresh
 
-### Step 3 — Mock data update `[data]`
-**What:** Add `chat` field to agents and distribute across named chats with varied statuses.
-- Add `chat: { id: string; name: string; time: string }` to `Agent` interface
-- Add `snippet?: string` field (current activity text shown in card body)
-- Distribute 6+ agents across 2–3 chats (e.g. "Q1 Market Analysis", "Product Roadmap", "Support Backlog")
-- Give each agent a distinct status — include at least one each of: live, stalled, needs-input, error, paused, done
-- Update `useAgentSimulation` status transitions to use new 7-value enum
+- Update `Agent` mock data so status variety matches the expanded state model.
+- Keep chat grouping, but add clearer examples for attention states like stalled, error, and needs-input.
+- Refresh `useAgentSimulation` so transitions reflect the new states instead of the current 3-status flow.
 
-**Files:** `src/types/agent.ts`, `src/data/mockAgents.ts`, `src/hooks/useAgentSimulation.ts`
+### 3. Browser-mode completed row treatment
 
-**Status:** pending
+- Once the status system is expanded, split completed work into a compact row below the active grid.
+- Keep the current stable ordering rules so cards do not jump unexpectedly during active work.
 
----
+### 4. Filter evolution
 
-### Step 4 — Filter bar with counts `[filter]`
-**What:** Replace `FeedTabs` with a new `AgentFilterBar` component matching v5's filter bar.
-- Tabs: All · Running · Needs Input · Stalled · Error · Paused · Completed
-- Count badge on each tab, only render tab if count > 0
-- Active tab: solid background + bold text; Needs Input → purple, Stalled → amber, Error → red
-- Search input on the right (live filter by name or currentTask)
-- "Completed" tab counts both `done` and `cancelled`
+- Replace the current 4-state filter set with the final attention-driven filter bar.
+- Add the future counts and labels for:
+  - running
+  - needs input
+  - stalled
+  - error
+  - paused
+  - completed
+- Keep search and grouped rendering behavior from the current implementation.
 
-**Files:** `src/components/feed/AgentFilterBar.tsx` (new), update `AgentsPanel` to wire state
+### 5. Final visual QA
 
-**Status:** pending
-
----
-
-### Step 5 — Chat grouping in feed `[grouping]`
-**What:** Group agents by chat in the agents panel grid.
-- Section header per chat: name + "·" + time
-- Active agents in a responsive grid (`repeat(auto-fill, minmax(340px, 1fr))`)
-- Done/cancelled agents in a compact done-row below the grid
-- Grouping respects current filter — if filter = "Running", show only running agents still grouped by chat (hide empty groups)
-- Header stats pills: "N Running · M Need attention · Z Done · W Paused" (only show non-zero)
-
-**Files:** `src/components/sidebar/AgentsPanel.tsx`, `src/components/feed/FeedHeader.tsx`
-
-**Status:** pending
+- Run a final pass against the TESS references for spacing, typography weight, and motion consistency.
+- Manually verify resize/collapse behavior on tablet and desktop.
+- Recheck footer density and side-panel hierarchy after the larger status work lands.
 
 ---
 
-## Previous Milestones (V1–V2)
+## Non-V3 Follow-ups
 
-- [x] Phase 1 proof of concept shipped
-- [x] Phase 2 shell mounted as the main app entry
-- [x] Right context panel mounted and wired
-- [x] Shell realigned to icon rail + Agents column + feed + right context panel
-- [x] Responsive one-pane / two-pane / three-pane behavior implemented
-- [x] Middle and right detail panels are closable
-- [x] Resize handles are visually refined and collapse on drag threshold
-- [x] Collapsed panels remain recoverable through visible edge stubs
-- [x] Feed and detail tab state stay controlled across close/reopen
-- [x] Accessibility pass completed for the mounted shell
+- README is still incomplete.
+- Voice-input unsupported-browser behavior still needs manual browser verification.
+- A final full visual alignment pass is still needed after the status-system work is complete.
 
-## Open (non-V3)
+---
 
-- README still incomplete
-- Voice-input unsupported-browser behavior needs manual browser verification
-- Final visual alignment against TESS refs needs a last pass
+## Build / Lint Expectations
 
-## Done Criteria (V3)
-
-- Cards match v5 visual layout: header / context bar / meta / snippet / footer
-- 7 statuses render with correct colors, badges, pulse animations
-- Agents are grouped by chat in the panel
-- Filter bar tabs show live counts and filter the grid
-- Search input filters by name/task
-- Done cards render as compact rows
-- `npm run build` and `npm run lint` still pass
+- `npm run build` should pass after V3 polish changes.
+- `npm run lint` should pass once the remaining pre-existing hook/ref issues outside this slice are resolved.

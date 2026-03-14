@@ -14,7 +14,7 @@ export type RightPanelTab = 'skills' | 'mcp' | 'integrations' | 'context'
 
 interface Props {
   agent: Agent
-  width?: number
+  width?: number | string
   onClose: () => void
   activeTab: RightPanelTab
   onTabChange: (tab: RightPanelTab) => void
@@ -145,12 +145,12 @@ export function RightPanel({
 
       <div
         style={{
-          padding: '10px 12px 14px',
+          padding: '16px 14px 24px',
           borderTop: '1px solid var(--border-default)',
-          backgroundColor: 'var(--bg-white)',
+          backgroundColor: 'var(--bg-off-white)',
           display: 'flex',
           flexDirection: 'column',
-          gap: 8,
+          gap: 14,
           flexShrink: 0,
         }}
       >

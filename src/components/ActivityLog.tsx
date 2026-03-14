@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { AgentIcon as IconType, LogEntry, LogEventType } from '../types/agent'
 import { AgentIcon } from './ui/AgentIcon'
-import tessLogo from '../assets/tess-light.svg'
+import tessLogo from '../assets/logos/tess-light.svg'
 
 interface Props {
   logs: LogEntry[]

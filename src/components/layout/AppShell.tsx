@@ -5,6 +5,7 @@ import type { FeedTab } from '../feed/FeedColumn'
 import { RightPanel } from '../rightpanel/RightPanel'
 import type { RightPanelTab } from '../rightpanel/RightPanel'
 import { AgentsPanel } from '../sidebar/AgentsPanel'
+import type { AgentPanelFilter } from '../sidebar/AgentsPanel'
 import { IconRail } from '../sidebar/IconRail'
 import { PanelStub } from '../ui/PanelStub'
 import { ResizeHandle } from '../ui/ResizeHandle'
@@ -41,10 +42,14 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
   const [feedOpen, setFeedOpen] = useState(false)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [agentsCollapsed, setAgentsCollapsed] = useState(() => readCollapsedState('tcc.agents.collapsed', 'tcc.sidebar.collapsed'))
+  const [agentFilter, setAgentFilter] = useState<AgentPanelFilter>('all')
+  const [agentSearchQuery, setAgentSearchQuery] = useState('')
   const [feedTabsByAgent, setFeedTabsByAgent] = useState<Record<string, FeedTab>>({})
   const [detailsTabsByAgent, setDetailsTabsByAgent] = useState<Record<string, RightPanelTab>>({})
   const detailsButtonRef = useRef<HTMLButtonElement | null>(null)
   const cardRefs = useRef<Record<string, HTMLElement | null>>({})
+  const agentsPanelRef = useRef<HTMLDivElement | null>(null)
+  const rightPanelRef = useRef<HTMLDivElement | null>(null)
 
   const {
     width: agentsWidth,
@@ -62,6 +67,7 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
       collapseThreshold: 248,
       onCollapse: () => setAgentsCollapsed(true),
       snapPoints: [280, 320, 360, 400],
+      liveElementRef: agentsPanelRef,
     },
   )
 
@@ -81,6 +87,7 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
       collapseThreshold: 224,
       onCollapse: () => setDetailsOpen(false),
       snapPoints: [288, 320, 360, 400],
+      liveElementRef: rightPanelRef,
     },
   )
 
@@ -110,6 +117,11 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
   }
 
   function handleSelectAgent(agentId: string) {
+    if (browserMode) {
+      setAgentsCollapsed(false)
+      setDetailsOpen(false)
+    }
+
     setSelectedId(agentId)
     setFeedOpen(true)
     if (!feedOpen) {
@@ -139,11 +151,6 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
     if (layout === 'tablet' && detailsOpen) {
       setDetailsOpen(false)
     }
-  }
-
-  function reopenFeed() {
-    if (!selectedAgent) return
-    setFeedOpen(true)
   }
 
   function togglePause(agent: Agent) {
@@ -207,6 +214,10 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
           }}
           width="100%"
           mode="browser"
+          filter={agentFilter}
+          onFilterChange={setAgentFilter}
+          searchQuery={agentSearchQuery}
+          onSearchQueryChange={setAgentSearchQuery}
           registerCardRef={registerCardRef}
           mobile
         />
@@ -237,47 +248,52 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
         }}
       >
         {browserMode ? (
-          <>
-            <AgentsPanel
-              agents={agents}
-              selectedId={selectedId}
-              onSelect={handleSelectAgent}
-              onTogglePause={agentId => {
-                const agent = agents.find(item => item.id === agentId)
-                if (!agent) return
-                togglePause(agent)
-              }}
-              width="100%"
-              mode="browser"
-              registerCardRef={registerCardRef}
-            />
-
-            {selectedAgent && (
-              <PanelStub
-                title="Activity"
-                subtitle={selectedAgent.name}
-                side="right"
-                ariaLabel={`Reopen activity for ${selectedAgent.name}`}
-                onClick={reopenFeed}
-              />
-            )}
-          </>
+          <AgentsPanel
+            agents={agents}
+            selectedId={selectedId}
+            onSelect={handleSelectAgent}
+            onTogglePause={agentId => {
+              const agent = agents.find(item => item.id === agentId)
+              if (!agent) return
+              togglePause(agent)
+            }}
+            width="100%"
+            mode="browser"
+            filter={agentFilter}
+            onFilterChange={setAgentFilter}
+            searchQuery={agentSearchQuery}
+            onSearchQueryChange={setAgentSearchQuery}
+            registerCardRef={registerCardRef}
+          />
         ) : selectedAgent ? (
           <>
             {showAgentsSidebar && (
-              <AgentsPanel
-                agents={agents}
-                selectedId={selectedId}
-                onSelect={handleSelectAgent}
-                onTogglePause={agentId => {
-                  const agent = agents.find(item => item.id === agentId)
-                  if (!agent) return
-                  togglePause(agent)
+              <div
+                ref={agentsPanelRef}
+                style={{
+                  width: agentsWidth,
+                  flexShrink: 0,
+                  display: 'flex',
+                  minHeight: 0,
+                  overflow: 'hidden',
                 }}
-                width={agentsWidth}
-                mode="sidebar"
-                registerCardRef={registerCardRef}
-              />
+              >
+                <AgentsPanel
+                  agents={agents}
+                  selectedId={selectedId}
+                  onSelect={handleSelectAgent}
+                  onTogglePause={agentId => {
+                    const agent = agents.find(item => item.id === agentId)
+                    if (!agent) return
+                    togglePause(agent)
+                  }}
+                  width="100%"
+                  mode="sidebar"
+                  filter={agentFilter}
+                  onFilterChange={setAgentFilter}
+                  registerCardRef={registerCardRef}
+                />
+              </div>
             )}
 
             {/* Handle is always rendered when not auto-hidden — expand btn visible when collapsed */}
@@ -292,6 +308,11 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
                 dragging={agentsDragging}
                 willCollapse={agentsWillCollapse}
                 disabled={agentsCollapsed}
+                expandTooltip="Open agents panel"
+                collapseTooltip="Hide agents panel"
+                resizeTooltip="Drag to resize"
+                expandAriaLabel="Open agents panel"
+                collapseAriaLabel="Hide agents panel"
               />
             )}
 
@@ -329,16 +350,32 @@ export function AppShell({ agents, onSendPrompt, onPauseAgent, onResumeAgent }: 
               dragging={detailsDragging}
               willCollapse={detailsWillCollapse}
               disabled={!detailsOpen}
+              expandTooltip="Open details panel"
+              collapseTooltip="Hide details panel"
+              resizeTooltip="Drag to resize"
+              expandAriaLabel="Open details panel"
+              collapseAriaLabel="Hide details panel"
             />
 
             {showDetailsPanel && (
-              <RightPanel
-                agent={selectedAgent}
-                width={rightPanelWidth}
-                onClose={closeDetails}
-                activeTab={activeDetailsTab}
-                onTabChange={tab => setDetailsTabsByAgent(previous => ({ ...previous, [selectedAgent.id]: tab }))}
-              />
+              <div
+                ref={rightPanelRef}
+                style={{
+                  width: rightPanelWidth,
+                  flexShrink: 0,
+                  display: 'flex',
+                  minHeight: 0,
+                  overflow: 'hidden',
+                }}
+              >
+                <RightPanel
+                  agent={selectedAgent}
+                  width="100%"
+                  onClose={closeDetails}
+                  activeTab={activeDetailsTab}
+                  onTabChange={tab => setDetailsTabsByAgent(previous => ({ ...previous, [selectedAgent.id]: tab }))}
+                />
+              </div>
             )}
           </>
         ) : null}

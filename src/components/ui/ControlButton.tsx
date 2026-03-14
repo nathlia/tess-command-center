@@ -1,7 +1,8 @@
 import { forwardRef } from 'react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { UI_TONES, type UiTone } from './uiTones'
 
-type ButtonTone = 'neutral' | 'teal' | 'amber'
+type ButtonTone = UiTone
 type ButtonVariant = 'outline' | 'soft' | 'primary' | 'ghost'
 type ButtonSize = 'sm' | 'md'
 type ButtonAlign = 'center' | 'start'
@@ -23,16 +24,10 @@ const ACTIVE_STYLES: Record<ButtonTone, { borderColor: string; backgroundColor: 
     backgroundColor: 'var(--bg-subtle)',
     color: 'var(--text-ink)',
   },
-  teal: {
-    borderColor: 'var(--border-teal-15)',
-    backgroundColor: 'var(--bg-teal-12)',
-    color: 'var(--text-teal)',
-  },
-  amber: {
-    borderColor: 'var(--border-tan-20)',
-    backgroundColor: 'var(--bg-warm)',
-    color: 'var(--text-amber)',
-  },
+  teal: UI_TONES.teal,
+  purple: UI_TONES.purple,
+  amber: UI_TONES.amber,
+  emerald: UI_TONES.emerald,
 }
 
 const BUTTON_SIZES: Record<ButtonSize, { square: number; minHeight: number; padding: string; radius: number }> = {

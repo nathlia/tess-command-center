@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react'
+import type { PointerEvent as ReactPointerEvent, RefObject } from 'react'
 
 interface UseResizablePanelOptions {
   legacyStorageKey?: string
@@ -6,13 +7,26 @@ interface UseResizablePanelOptions {
   collapseThreshold?: number
   onCollapse?: () => void
   snapPoints?: number[]
+  liveElementRef?: RefObject<HTMLElement | null>
 }
 
 function clamp(val: number, min: number, max: number) {
   return Math.min(max, Math.max(min, val))
 }
 
-const SNAP_RADIUS = 14
+function getSnappedWidth(width: number, snapPoints?: number[]) {
+  if (!snapPoints?.length) return width
+
+  const SNAP_RADIUS = 10
+
+  for (const snap of snapPoints) {
+    if (Math.abs(width - snap) < SNAP_RADIUS) {
+      return snap
+    }
+  }
+
+  return width
+}
 
 export function useResizablePanel(
   storageKey: string,
@@ -25,12 +39,8 @@ export function useResizablePanel(
   const resizeFrom = options?.resizeFrom ?? 'right'
   const collapseThreshold = options?.collapseThreshold
   const onCollapse = options?.onCollapse
-
-  // Keep mutable refs so the pointermove closure never goes stale
-  const snapPointsRef = useRef(options?.snapPoints)
-  snapPointsRef.current = options?.snapPoints
-  const defaultWidthRef = useRef(defaultWidth)
-  defaultWidthRef.current = defaultWidth
+  const snapPoints = options?.snapPoints
+  const liveElementRef = options?.liveElementRef
 
   const [width, setWidthState] = useState<number>(() => {
     try {
@@ -41,11 +51,18 @@ export function useResizablePanel(
         const legacyStored = localStorage.getItem(legacyStorageKey)
         if (legacyStored) return clamp(Number(legacyStored), min, max)
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
+
     return defaultWidth
   })
+
   const [isDragging, setIsDragging] = useState(false)
   const [willCollapse, setWillCollapse] = useState(false)
+  const widthRef = useRef(width)
+  const pendingWidthRef = useRef<number | null>(null)
+  const frameRef = useRef<number | null>(null)
   const collapseRef = useRef(false)
   const dragRef = useRef({
     dragging: false,
@@ -55,47 +72,97 @@ export function useResizablePanel(
     target: null as HTMLElement | null,
   })
 
-  const setWidth = useCallback((w: number) => {
-    setWidthState(clamp(w, min, max))
-  }, [max, min])
-
-  useEffect(() => {
+  const persistWidth = useCallback((nextWidth: number) => {
     try {
-      localStorage.setItem(storageKey, String(width))
+      localStorage.setItem(storageKey, String(nextWidth))
     } catch {
       /* ignore */
     }
-  }, [storageKey, width])
+  }, [storageKey])
+
+  const applyLiveWidth = useCallback((nextWidth: number) => {
+    const clamped = clamp(nextWidth, min, max)
+    widthRef.current = clamped
+
+    if (liveElementRef?.current) {
+      liveElementRef.current.style.width = `${clamped}px`
+    }
+
+    return clamped
+  }, [liveElementRef, max, min])
+
+  const commitWidth = useCallback((nextWidth: number) => {
+    const clamped = applyLiveWidth(nextWidth)
+    setWidthState(currentWidth => (currentWidth === clamped ? currentWidth : clamped))
+    return clamped
+  }, [applyLiveWidth])
+
+  useLayoutEffect(() => {
+    applyLiveWidth(width)
+  }, [applyLiveWidth, width])
+
+  const flushPendingWidth = useCallback(() => {
+    frameRef.current = null
+
+    if (pendingWidthRef.current === null) {
+      return widthRef.current
+    }
+
+    const nextWidth = pendingWidthRef.current
+    pendingWidthRef.current = null
+    return applyLiveWidth(nextWidth)
+  }, [applyLiveWidth])
+
+  const scheduleWidthUpdate = useCallback((nextWidth: number) => {
+    pendingWidthRef.current = nextWidth
+
+    if (frameRef.current !== null) {
+      return
+    }
+
+    frameRef.current = requestAnimationFrame(() => {
+      flushPendingWidth()
+    })
+  }, [flushPendingWidth])
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     const onPointerMove = (e: PointerEvent) => {
       if (!dragRef.current.dragging) return
+
       const delta = e.clientX - dragRef.current.startX
-      let nextWidth = dragRef.current.startW + delta * (resizeFrom === 'left' ? -1 : 1)
+      const nextWidth = dragRef.current.startW + delta * (resizeFrom === 'left' ? -1 : 1)
 
       if (collapseThreshold) {
         const nextWillCollapse = nextWidth < collapseThreshold
-        collapseRef.current = nextWillCollapse
-        setWillCollapse(nextWillCollapse)
-        if (nextWillCollapse) return
-      }
+        if (collapseRef.current !== nextWillCollapse) {
+          collapseRef.current = nextWillCollapse
+          setWillCollapse(nextWillCollapse)
+        }
 
-      // Snap to natural sizes when close enough
-      const snaps = snapPointsRef.current
-      if (snaps?.length) {
-        for (const snap of snaps) {
-          if (Math.abs(nextWidth - snap) < SNAP_RADIUS) {
-            nextWidth = snap
-            break
-          }
+        if (nextWillCollapse) {
+          return
         }
       }
 
-      setWidth(nextWidth)
+      scheduleWidthUpdate(nextWidth)
     }
 
     const onPointerUp = () => {
       if (!dragRef.current.dragging) return
+
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current)
+        flushPendingWidth()
+      }
+
       const shouldCollapse = collapseRef.current && Boolean(collapseThreshold && onCollapse)
 
       if (dragRef.current.target?.hasPointerCapture(dragRef.current.pointerId)) {
@@ -107,6 +174,13 @@ export function useResizablePanel(
       delete document.body.dataset.resizing
       document.body.style.userSelect = ''
       setIsDragging(false)
+
+      if (!shouldCollapse) {
+        const snappedWidth = commitWidth(getSnappedWidth(widthRef.current, snapPoints))
+        persistWidth(snappedWidth)
+      }
+
+      pendingWidthRef.current = null
       collapseRef.current = false
       setWillCollapse(false)
 
@@ -117,37 +191,44 @@ export function useResizablePanel(
 
     document.addEventListener('pointermove', onPointerMove)
     document.addEventListener('pointerup', onPointerUp)
+
     return () => {
       document.removeEventListener('pointermove', onPointerMove)
       document.removeEventListener('pointerup', onPointerUp)
     }
-  }, [collapseThreshold, onCollapse, resizeFrom, setWidth])
+  }, [
+    collapseThreshold,
+    commitWidth,
+    flushPendingWidth,
+    onCollapse,
+    persistWidth,
+    resizeFrom,
+    scheduleWidthUpdate,
+    snapPoints,
+  ])
 
-  const onPointerDown = (e: React.PointerEvent<HTMLElement>) => {
+  const onPointerDown = (e: ReactPointerEvent<HTMLElement>) => {
     e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
     dragRef.current = {
       dragging: true,
       startX: e.clientX,
-      startW: width,
+      startW: widthRef.current,
       pointerId: e.pointerId,
       target: e.currentTarget,
     }
     document.body.dataset.resizing = 'true'
     document.body.style.userSelect = 'none'
     collapseRef.current = false
+    pendingWidthRef.current = null
     setWillCollapse(false)
     setIsDragging(true)
   }
 
-  // Double-click to reset to the default width
   const onDoubleClick = useCallback(() => {
-    const target = defaultWidthRef.current
-    setWidthState(clamp(target, min, max))
-    try {
-      localStorage.setItem(storageKey, String(clamp(target, min, max)))
-    } catch { /* ignore */ }
-  }, [min, max, storageKey])
+    const nextWidth = commitWidth(defaultWidth)
+    persistWidth(nextWidth)
+  }, [commitWidth, defaultWidth, persistWidth])
 
   return { width, onPointerDown, onDoubleClick, isDragging, willCollapse }
 }
