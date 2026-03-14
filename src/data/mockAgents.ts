@@ -1,7 +1,13 @@
-import type { Agent } from '../types/agent'
+import type { Agent, AgentChat } from '../types/agent'
 import { providerFor } from './providers'
 
 const now = () => new Date().toISOString()
+
+const CHATS: Record<string, AgentChat> = {
+  q1:      { id: 'q1',      name: 'Q1 Market Research',  time: '14 min ago' },
+  pipeline: { id: 'pipeline', name: 'Pipeline Health',     time: '22 min ago' },
+  weekly:  { id: 'weekly',  name: 'Weekly Wrap',          time: '31 min ago' },
+}
 
 export const initialAgents: Agent[] = [
   {
@@ -21,6 +27,7 @@ export const initialAgents: Agent[] = [
     generatingModality: 'T',
     ctx: 42,
     provider: providerFor('claude-sonnet-4-6'),
+    chat: CHATS.q1,
     steps: [
       { label: 'Load context', status: 'done', time: '8m12s' },
       { label: 'Search sources', status: 'done', time: '5m44s' },
@@ -51,6 +58,7 @@ export const initialAgents: Agent[] = [
     generatingModality: null,
     ctx: 18,
     provider: providerFor('gpt-4o'),
+    chat: CHATS.pipeline,
     steps: [
       { label: 'Scan event logs', status: 'done', time: '1m48s' },
       { label: 'Detect anomalies', status: 'active', time: '--' },
@@ -80,6 +88,7 @@ export const initialAgents: Agent[] = [
     generatingModality: null,
     ctx: 57,
     provider: providerFor('gemini-2.0-flash'),
+    chat: CHATS.pipeline,
     steps: [
       { label: 'Load query plan', status: 'done', time: '10m20s' },
       { label: 'Identify bottleneck', status: 'done', time: '8m05s' },
@@ -111,6 +120,7 @@ export const initialAgents: Agent[] = [
     generatingModality: null,
     ctx: 74,
     provider: providerFor('claude-opus-4-6'),
+    chat: CHATS.weekly,
     steps: [
       { label: 'Load 47 tickets', status: 'done', time: '13m00s' },
       { label: 'Classify priority', status: 'done', time: '9m45s' },
@@ -141,6 +151,7 @@ export const initialAgents: Agent[] = [
     generatingModality: null,
     ctx: 62,
     provider: providerFor('gpt-4o'),
+    chat: CHATS.weekly,
     steps: [
       { label: 'Collect agent outputs', status: 'done', time: '9m30s' },
       { label: 'Identify themes', status: 'done', time: '7m15s' },
@@ -173,6 +184,7 @@ export const initialAgents: Agent[] = [
     generatingModality: null,
     ctx: 51,
     provider: providerFor('claude-sonnet-4-6'),
+    chat: CHATS.q1,
     steps: [
       { label: 'Await dependency', status: 'done', time: '11m00s' },
       { label: 'Start enrichment', status: 'done', time: '8m40s' },
@@ -187,6 +199,67 @@ export const initialAgents: Agent[] = [
       { id: 'l6-4', timestamp: now(), message: 'Cross-referencing with internal CRM records', type: 'info' },
       { id: 'l6-5', timestamp: now(), message: 'Deduplication: merged 12 duplicate entries', type: 'info' },
       { id: 'l6-6', timestamp: now(), message: 'Enrichment complete - 47 profiles updated, 12 merged', type: 'info' },
+    ],
+  },
+  {
+    id: 'agent-7',
+    name: 'Research Agent',
+    icon: 'microscope',
+    model: 'claude-sonnet-4-6',
+    status: 'thinking',
+    progress: 22,
+    tokens: 2800,
+    tokenBudget: 8000,
+    currentTask: 'Investigating recurring memory leak patterns in worker service',
+    archetype: 'Researcher',
+    elapsed: 245,
+    paused: false,
+    modalities: ['T'],
+    generatingModality: null,
+    ctx: 22,
+    provider: providerFor('claude-sonnet-4-6'),
+    chat: CHATS.pipeline,
+    steps: [
+      { label: 'Load heap snapshots', status: 'done', time: '4m05s' },
+      { label: 'Identify leak pattern', status: 'active', time: '--' },
+      { label: 'Trace allocations', status: 'pending', time: '--' },
+      { label: 'Draft RCA', status: 'pending', time: '--' },
+      { label: 'Recommend fix', status: 'pending', time: '--' },
+    ],
+    logs: [
+      { id: 'l7-1', timestamp: now(), message: 'Loading heap snapshots from worker-prod-02', type: 'info' },
+      { id: 'l7-2', timestamp: now(), message: 'Identifying allocation patterns', type: 'think' },
+    ],
+  },
+  {
+    id: 'agent-8',
+    name: 'Content Synthesizer',
+    icon: 'pencil',
+    model: 'gpt-4o',
+    status: 'executing',
+    progress: 55,
+    tokens: 4100,
+    tokenBudget: 9000,
+    currentTask: 'Compiling weekly product digest from Slack threads and Notion docs',
+    archetype: 'Writer',
+    elapsed: 330,
+    paused: false,
+    modalities: ['T', 'I'],
+    generatingModality: 'T',
+    ctx: 55,
+    provider: providerFor('gpt-4o'),
+    chat: CHATS.weekly,
+    steps: [
+      { label: 'Fetch Slack threads', status: 'done', time: '5m30s' },
+      { label: 'Fetch Notion docs', status: 'done', time: '3m10s' },
+      { label: 'Extract key signals', status: 'active', time: '--' },
+      { label: 'Draft digest', status: 'pending', time: '--' },
+      { label: 'Publish to channel', status: 'pending', time: '--' },
+    ],
+    logs: [
+      { id: 'l8-1', timestamp: now(), message: 'Fetched 34 Slack threads from #product, #eng-standup', type: 'info' },
+      { id: 'l8-2', timestamp: now(), message: 'Loaded 8 Notion pages from Product Wiki', type: 'info' },
+      { id: 'l8-3', timestamp: now(), message: 'Extracting key decisions and blockers', type: 'think' },
     ],
   },
 ]

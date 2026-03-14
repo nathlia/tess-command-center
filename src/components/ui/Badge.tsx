@@ -56,6 +56,7 @@ export function Badge({
         position: shimmer ? 'relative' : undefined,
         overflow: shimmer ? 'hidden' : undefined,
         isolation: shimmer ? 'isolate' : undefined,
+        transition: 'background-color 350ms, border-color 350ms, color 350ms',
         ...style,
       }}
     >

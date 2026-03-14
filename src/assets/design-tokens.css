@@ -77,6 +77,7 @@
   --text-gray-400:   #d4d4d4;
   --text-muted-400:  #a3a3a3;
   --text-muted-500:  #9ca3af;
+  --text-red:        #dc2626;       /* ★ error / danger */
   --text-amber:      #d97706;       /* ★ warning / price */
   --text-brown:      #9f8066;
   --text-emerald:    #059669;       /* ★ success / checks */

@@ -11,6 +11,8 @@ const INITIAL_DELAYS: Record<string, number> = {
   'agent-4': 5000,
   'agent-5': 4200,
   'agent-6': 6500,
+  'agent-7': 1400,
+  'agent-8': 2600,
 }
 
 const SCRIPT_PACE_MULTIPLIER = 3.6

@@ -44,6 +44,12 @@ export interface ScriptStep {
   output?: string
 }
 
+export interface AgentChat {
+  id: string
+  name: string
+  time: string
+}
+
 export interface Agent {
   id: string
   name: string
@@ -63,4 +69,5 @@ export interface Agent {
   generatingModality: Modality | null
   ctx: number
   provider: Provider
+  chat: AgentChat
 }
