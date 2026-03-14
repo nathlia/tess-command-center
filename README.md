@@ -1,6 +1,6 @@
-# TESS Command Center
+# Command Center
 
-> A multi-agent monitoring interface built as a design & engineering challenge for Tess AI.
+> A multi-agent monitoring interface built as a design & engineering challenge.
 
 <table>
   <tr>
